@@ -1,0 +1,24 @@
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+import HomeScreen from './index';
+import Diario from './diario';
+
+export type RootStackParamList = {
+  Menu: undefined;
+  PuzzleDiario: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Menu" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Menu" component={HomeScreen} />
+        <Stack.Screen name="PuzzleDiario" component={Diario} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
