@@ -30,6 +30,19 @@ const tiposCombinables: { [key:string]: string[] } = {
     'electrico':['bicho','dragon','lucha','fuego','fantasma','planta','tierra','hielo','normal','volador','veneno','psiquico','roca','agua','siniestro','acero','hada']
 };
 
+const regionesPosibles: { [key:string]: string[] } = {
+    'Kanto': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','acero'],
+    'Johto': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
+    'Hoenn': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
+    'Sinnoh': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
+    'Teselia': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
+    'Kalos': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
+    'Alola': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
+    'Galar': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
+    'Paldea': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
+    'Hisui': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada']
+};
+
 export default function Diario() {
     const navigation = useNavigation();
     const [topLabels, setTopLabels] = useState<string[]>([]);
@@ -47,21 +60,7 @@ export default function Diario() {
     const [board, setBoard] = useState(
         Array(3).fill(null).map(() => Array(3).fill(null))
     );
-    const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea'];
-
-    
-    const regionesPosibles: { [key:string]: string[] } = {
-        'Kanto': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Johto': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Hoenn': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Sinnoh': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Teselia': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Kalos': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Alola': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Galar': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-        'Paldea': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-    };
-    
+    const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea','Hisui'];
 
     useEffect(() => {
         const fetchAllPokemon = async () => {
@@ -110,97 +109,145 @@ export default function Diario() {
     };
     
 
-    const handleSelect = async (pokemon: any, regions: string[], leftLabels: string[], topLabels: string[]) => {
+    const handleSelect = async (
+        pokemon: any,
+        regions: string[],
+        leftLabels: string[],
+        topLabels: string[]
+      ) => {
         if (selectedIndex === null) return;
-    
+      
         const row = Math.floor(selectedIndex / 3);
         const col = selectedIndex % 3;
-    
+      
         const labelFila = leftLabels[row];
         const labelColumna = topLabels[col];
-    
+      
         const tiposEspanolIngles: { [key: string]: string } = {
-            'Agua': 'water', 'Fuego': 'fire', 'Planta': 'grass', 'Eléctrico': 'electric',
-            'Hielo': 'ice', 'Tierra': 'ground', 'Bicho': 'bug', 'Fantasma': 'ghost',
-            'Roca': 'rock', 'Acero': 'steel', 'Dragón': 'dragon', 'Hada': 'fairy',
-            'Lucha': 'fighting', 'Normal': 'normal', 'Veneno': 'poison', 'Psíquico': 'psychic',
-            'Siniestro': 'dark', 'Volador': 'flying',
+          'Agua': 'water', 'Fuego': 'fire', 'Planta': 'grass', 'Electrico': 'electric',
+          'Hielo': 'ice', 'Tierra': 'ground', 'Bicho': 'bug', 'Fantasma': 'ghost',
+          'Roca': 'rock', 'Acero': 'steel', 'Dragon': 'dragon', 'Hada': 'fairy',
+          'Lucha': 'fighting', 'Normal': 'normal', 'Veneno': 'poison', 'Psiquico': 'psychic',
+          'Siniestro': 'dark', 'Volador': 'flying',
         };
-    
-        // Convertir las etiquetas a formato correcto (mayúsculas) para coincidir con las claves
-        const formatLabel = (label: string) => label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
-    
-        const tipoFila = tiposEspanolIngles[formatLabel(labelFila)];
-        const tipoColumna = tiposEspanolIngles[formatLabel(labelColumna)];
-    
-        console.log("Tipo fila:", tipoFila, "Tipo columna:", tipoColumna);
-    
-        if (!tipoFila || !tipoColumna) {
-            console.error("Error: No se encontró el tipo para las etiquetas:", labelFila, labelColumna);
-            setErrorModal({ visible: true, message: `Error: No se encontró el tipo para las etiquetas.\n• ${labelFila}\n• ${labelColumna}` });
-            return;
-        }
-    
+      
+        const sufijosRegionales: { [key: string]: string } = {
+          'Alola': '-alola',
+          'Galar': '-galar',
+          'Hisui': '-hisui',
+          'Paldea': '-paldea',
+        };
+      
+        const sufijosMega: string[] = ['-mega', '-gmax'];
+      
+        const formatLabel = (label: string) =>
+          label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+      
+        const formattedFila = formatLabel(labelFila);
+        const formattedColumna = formatLabel(labelColumna);
+      
+        const tipoFila = tiposEspanolIngles[formattedFila];
+        const tipoColumna = tiposEspanolIngles[formattedColumna];
+      
+        const filaEsRegion = regions.includes(formattedFila);
+        const columnaEsRegion = regions.includes(formattedColumna);
+      
         const speciesRes = await fetch(pokemon.species.url);
         const speciesData = await speciesRes.json();
         const generation = speciesData.generation.name;
-    
+      
         const genToRegion: { [key: string]: string } = {
-            'generation-i': 'Kanto',
-            'generation-ii': 'Johto',
-            'generation-iii': 'Hoenn',
-            'generation-iv': 'Sinnoh',
-            'generation-v': 'Teselia',
-            'generation-vi': 'Kalos',
-            'generation-vii': 'Alola',
-            'generation-viii': 'Galar',
-            'generation-ix': 'Paldea'
+          'generation-i': 'Kanto',
+          'generation-ii': 'Johto',
+          'generation-iii': 'Hoenn',
+          'generation-iv': 'Sinnoh',
+          'generation-v': 'Teselia',
+          'generation-vi': 'Kalos',
+          'generation-vii': 'Alola',
+          'generation-viii': 'Galar',
+          'generation-ix': 'Paldea',
+          'generation-x': 'Hisui',
         };
-    
+      
         const regionPokemon = genToRegion[generation];
         const tiposPokemon = pokemon.types.map((t: any) => t.type.name.toLowerCase());
-    
-        const filaEsRegion = regions.includes(labelFila);
-        const columnaEsRegion = regions.includes(labelColumna);
-    
+        const nombrePokemon = pokemon.name.toLowerCase();
+      
         let valido = false;
-    
+      
+        // Verifica si es una Mega o G-Max
+        const esMegaO_Gmax = sufijosMega.some(sufijo => nombrePokemon.includes(sufijo));
+      
+        // Verifica que el Pokémon cumpla con los tipos de fila o columna
+        const cumpleConTipos = (tipos: string[]) => {
+          return tipos.some((tipo: string) => tipo === tipoFila || tipo === tipoColumna);
+        };
+      
+        // Si la fila o columna contiene "Mega", solo se acepta la forma Mega
+        const esFormaMega = formattedFila === 'Mega' || formattedColumna === 'Mega';
+        const esFormaGmax = formattedFila === 'G-max' || formattedColumna === 'G-max';
+      
         if (filaEsRegion && columnaEsRegion) {
-            valido = false;
+          valido = false; // No se permiten combinaciones de dos regiones
         } else if (filaEsRegion || columnaEsRegion) {
-            const tipo = filaEsRegion ? tipoColumna : tipoFila;
-            const region = filaEsRegion ? labelFila : labelColumna;
-            valido = tiposPokemon.includes(tipo) && regionPokemon === region;
+          const tipo = filaEsRegion ? tipoColumna : tipoFila;
+          const region = filaEsRegion ? formattedFila : formattedColumna;
+      
+          const sufijoEsperado = sufijosRegionales[region];
+          const esFormaRegional = sufijoEsperado && nombrePokemon.includes(sufijoEsperado);
+          const esNativoDeRegion = regionPokemon === region;
+      
+          valido = tiposPokemon.includes(tipo) && (esFormaRegional || esNativoDeRegion);
+        } else if (esMegaO_Gmax) {
+          // Si la fila o columna tiene la etiqueta "Mega" o "G-Max", solo se acepta esa forma
+          if (esFormaMega && nombrePokemon.includes('-mega')) {
+            valido = cumpleConTipos(tiposPokemon);
+          } else if (esFormaGmax && nombrePokemon.includes('-gmax')) {
+            valido = cumpleConTipos(tiposPokemon);
+          } else {
+            valido = false; // Si no es la forma correcta, lo rechaza
+          }
         } else {
-            const tipo1 = tipoFila;
-            const tipo2 = tipoColumna;
-            valido = tiposPokemon.includes(tipo1) && tiposPokemon.includes(tipo2);
+          // Si no es Mega ni G-Max, solo se valida el tipo
+          valido = cumpleConTipos(tiposPokemon);
         }
-    
+      
+        // Comprobación de la forma base, si la fila o columna es Mega o G-Max, solo acepta la forma correcta
+        if (esFormaMega && !nombrePokemon.includes('-mega')) {
+          valido = false;
+        } else if (esFormaGmax && !nombrePokemon.includes('-gmax')) {
+          valido = false;
+        }
+      
         if (!valido) {
-            setErrorModal({ visible: true, message: `Este Pokémon no cumple con los requisitos:\n• ${labelFila}\n• ${labelColumna}` });
-            return;
+          setErrorModal({
+            visible: true,
+            message: `Este Pokémon no cumple con los requisitos:\n• ${labelFila}\n• ${labelColumna}`
+          });
+          return;
         }
-    
+      
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
         setBoard(newBoard);
-    
+      
         if (isBoardComplete()) {
-            setVictoryModalVisible(true);
+          setVictoryModalVisible(true);
         }
-    
+      
         const sprite = pokemon.sprites.front_default;
         if (sprite) {
-            setSprites(prev => ({
-                ...prev,
-                [selectedIndex]: sprite
-            }));
+          setSprites(prev => ({
+            ...prev,
+            [selectedIndex]: sprite
+          }));
         }
-    
+      
         setModalVisible(false);
-    };
-    
+      };
+      
+      
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -421,111 +468,132 @@ export default function Diario() {
 }
 
 const ficha_random = () => {
-    const regions: string[] = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea'];
-    const tipos: string[] = ['Agua', 'Fuego', 'Planta', 'Electrico', 'Hielo', 'Tierra', 'Bicho', 'Fantasma', 'Roca', 'Acero', 'Dragon', 'Hada', 'Lucha', 'Normal', 'Veneno', 'Psiquico', 'Siniestro', 'Volador'];
-
-    const copiaRegions = [...regions];
+    const especiales = ['Mega', 'G-max'];
+    const regionesBase = Object.keys(regionesPosibles);
+    const regionesProbabilidad = [
+      ...regionesBase,
+      'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega' // duplicados solo para aumentar la probabilidad
+    ];
+    const tipos: string[] = Object.keys(tiposCombinables).map(t =>
+      t.charAt(0).toUpperCase() + t.slice(1)
+    );
+  
+    const copiaRegions = [...regionesProbabilidad];
     const copiaTipos = [...tipos];
-
-    const incluirRegion = Math.random() < 0.4; // probabilidad de que haya regiones
-    const filasTienenRegiones = Math.random() < 0.5; // Si hay regiones, filas o columnas
-
+    const yaIncluidos = new Set<string>();
+  
+    const incluirRegion = Math.random() < 0.5;
+    const filasTienenRegiones = Math.random() < 0.5;
+  
     let topLabels: string[] = [];
     let leftLabels: string[] = [];
-
+  
     const shuffleArray = (array: string[]) => {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    };
+  
+    const extraerEtiqueta = (arr: string[]): string => {
+      while (arr.length > 0) {
+        const index = Math.floor(Math.random() * arr.length);
+        const etiqueta = arr.splice(index, 1)[0];
+        if (especiales.includes(etiqueta)) {
+          if (yaIncluidos.has(etiqueta)) continue; // Evita duplicados
+          yaIncluidos.add(etiqueta);
         }
-        return array;
+        return etiqueta;
+      }
+      return '';
     };
-
-    // Validar combinaciones con tiposCombinables
-    const esCombinacionValida = (tipoFila: string, tipoColumna: string): boolean => {
-        return tiposCombinables[tipoFila.toLowerCase()]?.includes(tipoColumna.toLowerCase()) ?? false;
+  
+    const esCombinacionValida = (fila: string, columna: string): boolean => {
+      if ((fila === 'Mega' && columna === 'G-max') || (fila === 'G-max' && columna === 'Mega')) {
+        return false;
+      }
+  
+      const filaLower = fila.toLowerCase();
+      const colLower = columna.toLowerCase();
+  
+      const filaEsRegion = regionesPosibles[fila] !== undefined || especiales.includes(fila);
+      const colEsRegion = regionesPosibles[columna] !== undefined || especiales.includes(columna);
+  
+      if (filaEsRegion && colEsRegion) return false;
+  
+      if (filaEsRegion) return !especiales.includes(fila) || tiposCombinables[colLower] !== undefined;
+      if (colEsRegion) return !especiales.includes(columna) || tiposCombinables[filaLower] !== undefined;
+  
+      return tiposCombinables[filaLower]?.includes(colLower) ?? false;
     };
-
+  
     if (incluirRegion) {
-        if (filasTienenRegiones) {
-            const left = [];
-
-            const numRegiones = Math.random() < 0.5 ? 1 : 2; // 1 o 2 regiones
-            for (let i = 0; i < numRegiones; i++) {
-                const index = Math.floor(Math.random() * copiaRegions.length);
-                left.push(copiaRegions.splice(index, 1)[0]);
-            }
-
-            while (left.length < 3) {
-                const index = Math.floor(Math.random() * copiaTipos.length);
-                left.push(copiaTipos.splice(index, 1)[0]);
-            }
-
-            leftLabels = shuffleArray(left);
-
-            while (topLabels.length < 3) {
-                const index = Math.floor(Math.random() * copiaTipos.length);
-                topLabels.push(copiaTipos.splice(index, 1)[0]);
-            }
-        } else {
-            const top = [];
-
-            const numRegiones = Math.random() < 0.5 ? 1 : 2;
-            for (let i = 0; i < numRegiones; i++) {
-                const index = Math.floor(Math.random() * copiaRegions.length);
-                top.push(copiaRegions.splice(index, 1)[0]);
-            }
-
-            while (top.length < 3) {
-                const index = Math.floor(Math.random() * copiaTipos.length);
-                top.push(copiaTipos.splice(index, 1)[0]);
-            }
-
-            topLabels = shuffleArray(top);
-
-            while (leftLabels.length < 3) {
-                const index = Math.floor(Math.random() * copiaTipos.length);
-                leftLabels.push(copiaTipos.splice(index, 1)[0]);
-            }
+      if (filasTienenRegiones) {
+        const left: string[] = [];
+  
+        const numRegiones = Math.random() < 0.5 ? 1 : 2;
+        for (let i = 0; i < numRegiones; i++) {
+          left.push(extraerEtiqueta(copiaRegions));
         }
+  
+        while (left.length < 3) {
+          left.push(extraerEtiqueta(copiaTipos));
+        }
+  
+        leftLabels = shuffleArray(left);
+  
+        while (topLabels.length < 3) {
+          topLabels.push(extraerEtiqueta(copiaTipos));
+        }
+      } else {
+        const top: string[] = [];
+  
+        const numRegiones = Math.random() < 0.5 ? 1 : 2;
+        for (let i = 0; i < numRegiones; i++) {
+          top.push(extraerEtiqueta(copiaRegions));
+        }
+  
+        while (top.length < 3) {
+          top.push(extraerEtiqueta(copiaTipos));
+        }
+  
+        topLabels = shuffleArray(top);
+  
+        while (leftLabels.length < 3) {
+          leftLabels.push(extraerEtiqueta(copiaTipos));
+        }
+      }
     } else {
-        // No hay regiones, todo tipos: evitamos combinaciones imposibles
-        const todosLosTipos = Array.from(new Set(Object.values(tiposCombinables).flat()));
-
-        // Seleccionamos columnas primero
-        const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
-
-        // Buscamos las filas que sean válidas con todas las columnas
-        const filasValidas = todosLosTipos.filter(tipo =>
-            columnas.every(col => esCombinacionValida(tipo, col))
-        );
-
-        // Si no hay suficientes filas válidas, volvemos a intentarlo
-        if (filasValidas.length < 3) {
-            return ficha_random(); // reintenta si no hay suficientes combinaciones válidas
-        }
-
-        // Seleccionamos las filas
-        const filas = shuffleArray(filasValidas).slice(0, 3);
-
-        // Asignamos las filas y columnas válidas
-        topLabels = columnas;
-        leftLabels = filas;
+      // Solo tipos
+      const todosLosTipos = Object.keys(tiposCombinables);
+      const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
+  
+      const filasValidas = todosLosTipos.filter(tipo =>
+        columnas.every(col => esCombinacionValida(tipo, col))
+      );
+  
+      if (filasValidas.length < 3) return ficha_random();
+  
+      const filas = shuffleArray(filasValidas).slice(0, 3);
+  
+      topLabels = columnas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
+      leftLabels = filas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
     }
-
-    // Validamos la cuadrícula final
+  
     const esCuadriculaValida = leftLabels.every(fila =>
-        topLabels.every(col => esCombinacionValida(fila, col))
+      topLabels.every(col => esCombinacionValida(fila, col))
     );
-
+  
     if (!esCuadriculaValida) {
-        return ficha_random(); // reintenta si la cuadrícula no es válida
+      return ficha_random();
     }
-
+  
     return { top: topLabels, left: leftLabels };
-};
+  };
+  
 
-
+  
 
 const styles = StyleSheet.create({
     container: {
