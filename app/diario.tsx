@@ -67,6 +67,22 @@ const typeStyles: Record<string, { backgroundColor: string; color: string }> = {
     'g-max':{backgroundColor: '#920C2C',color:'#fff'},
   };
 
+  const inicializaTableroVacio = () => {
+    return Array(3).fill(null).map(() => Array(3).fill(null));
+  };
+
+  const getBallImage = (score: number) => {
+    if (score >= 1000) {
+      return require('../assets/images/tfg/masterball.png');
+    } else if (score >= 700) {
+      return require('../assets/images/tfg/ultraball.png');
+    } else if (score >= 400) {
+      return require('../assets/images/tfg/superball.png');
+    } else {
+      return require('../assets/images/tfg/pokeball.png');
+    }
+  };
+
 export default function Diario() {
     const navigation = useNavigation();
     const [topLabels, setTopLabels] = useState<string[]>([]);
@@ -85,6 +101,14 @@ export default function Diario() {
         Array(3).fill(null).map(() => Array(3).fill(null))
     );
     const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea','Hisui'];
+    const [startTime, setStartTime] = useState<Date | null>(null);
+    const [score, setScore] = useState(0);
+
+    useEffect(() => {
+    if (!startTime) {
+        setStartTime(new Date());
+    }
+    }, []);
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
@@ -302,6 +326,18 @@ export default function Diario() {
           });
           return;
         }
+
+                // Evita que se sobrescriba una casilla ya ocupada
+        if (board[row][col]) return;
+
+        // Calcula el tiempo transcurrido desde el inicio
+        const now = new Date();
+        const elapsedSeconds = Math.floor((now.getTime() - (startTime?.getTime() || 0)) / 1000);
+
+        // Puntaje máximo que se va reduciendo hasta 0 en 2 minutos (120s)
+        const basePoints = Math.max(0, 150 - Math.floor((elapsedSeconds / 150) * 100));
+        setScore(prev => prev + basePoints);
+
       
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
@@ -321,6 +357,12 @@ export default function Diario() {
       
         setModalVisible(false);
       };
+
+      const resetGame = () => {
+        setBoard(inicializaTableroVacio());
+        setScore(0);
+        setStartTime(new Date());
+      };
       
       return (
         <View style={styles.container}>
@@ -332,9 +374,10 @@ export default function Diario() {
             </View>
     
             <View style={styles.scoreContainer}>
-                <Text style={styles.scoreText}>Puntuación: 898</Text>
-                <Image source={require('../assets/images/tfg/masterball.png')} style={styles.scoreIcon} />
+                <Text style={styles.scoreText}>Puntuación: {score}</Text>
+                <Image source={getBallImage(score)} style={styles.scoreIcon} />
             </View>
+
     
             <View style={styles.gridContainer}>
                 {/* Fila superior con las etiquetas */}
@@ -468,7 +511,7 @@ export default function Diario() {
                 ))}
             </View>
     
-            <TouchableOpacity style={styles.surrenderButton} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={styles.surrenderButton} onPress={() =>{resetGame(); navigation.goBack()} }>
                 <Text style={styles.surrenderText}>Rendirse</Text>
             </TouchableOpacity>
     
@@ -659,6 +702,7 @@ export default function Diario() {
                             onPress={() => {
                                 setVictoryModalVisible(false);
                                 navigation.goBack();
+                                resetGame();
                             }}
                             style={{
                                 backgroundColor: Colors.Botones_menu,
