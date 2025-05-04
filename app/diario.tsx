@@ -45,6 +45,28 @@ const regionesPosibles: { [key:string]: string[] } = {
     'Hisui': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada']
 };
 
+const typeStyles: Record<string, { backgroundColor: string; color: string }> = {
+    fuego: { backgroundColor: '#F08030', color: '#fff' },
+    planta: { backgroundColor: '#78C850', color: '#fff' },
+    agua: { backgroundColor: '#6890F0', color: '#fff' },
+    electrico: { backgroundColor: '#F8D030', color: '#000' },
+    hielo: { backgroundColor: '#98D8D8', color: '#000' },
+    lucha: { backgroundColor: '#C03028', color: '#fff' },
+    veneno: { backgroundColor: '#A040A0', color: '#fff' },
+    tierra: { backgroundColor: '#E0C068', color: '#000' },
+    volador: { backgroundColor: '#A890F0', color: '#000' },
+    psiquico: { backgroundColor: '#F85888', color: '#fff' },
+    bicho: { backgroundColor: '#A8B820', color: '#000' },
+    roca: { backgroundColor: '#B8A038', color: '#fff' },
+    fantasma: { backgroundColor: '#705898', color: '#fff' },
+    dragon: { backgroundColor: '#7038F8', color: '#fff' },
+    siniestro: { backgroundColor: '#705848', color: '#fff' },
+    acero: { backgroundColor: '#B8B8D0', color: '#000' },
+    hada: { backgroundColor: '#EE99AC', color: '#000' },
+    normal: { backgroundColor: '#A8A878', color: '#000' },
+    'g-max':{backgroundColor: '#920C2C',color:'#fff'},
+  };
+
 export default function Diario() {
     const navigation = useNavigation();
     const [topLabels, setTopLabels] = useState<string[]>([]);
@@ -320,19 +342,46 @@ export default function Diario() {
                 {/* Fila superior con las etiquetas */}
                 <View style={styles.row}>
                     <View style={styles.corner} />
-                    {topLabels.map((label, idx) => (
-                        <TouchableOpacity key={idx} style={[styles.labelCell,{marginRight:21,marginBottom:5}]} onPress={() => abrirInfo(label)}>
-                            <Text style={[styles.typeLabel,{marginLeft:25}]}>{label}</Text> 
-                        </TouchableOpacity>
-                    ))}
+                    {topLabels.map((label, idx) => {
+                        const tipo = label.toLowerCase();
+                        const style = typeStyles[tipo] || { backgroundColor: '#ccc', color: '#000' };
+
+                        return (
+                            <TouchableOpacity key={idx} style={{ marginRight: 5, marginBottom: 5,marginLeft:18 }} onPress={() => abrirInfo(label)}>
+                            <Text style={{
+                                backgroundColor: style.backgroundColor,
+                                color: style.color,
+                                paddingVertical: 6,
+                                borderRadius: 10,
+                                fontFamily: 'Pixel',
+                                fontSize: 16,
+                                textAlign: 'center',
+                                minWidth: 80,
+                            }}>
+                                {label}
+                            </Text>
+                            </TouchableOpacity>
+                        );
+                        })}
                 </View>
     
                 {/* Fila del tablero con las etiquetas a la izquierda */}
                 {Array.from({ length: 3 }).map((_, rowIdx) => (
                     <View key={rowIdx} style={styles.row}>
                         {/* Etiquetas de la izquierda */}
-                        <TouchableOpacity style={styles.labelCell} onPress={() => abrirInfo(leftLabels[rowIdx])}>
-                            <Text style={styles.typeLabel}>{leftLabels[rowIdx]}</Text>
+                        <TouchableOpacity onPress={() => abrirInfo(leftLabels[rowIdx])} style={{ marginRight: 5, marginLeft:-6 }}>
+                            <Text style={{
+                                width: 95,
+                                textAlign: 'center',
+                                backgroundColor: typeStyles[leftLabels[rowIdx]?.toLowerCase()]?.backgroundColor || '#ccc',
+                                color: typeStyles[leftLabels[rowIdx]?.toLowerCase()]?.color || '#000',
+                                paddingVertical: 6,
+                                borderRadius: 10,
+                                fontFamily: 'Pixel',
+                                fontSize: 16,
+                            }}>
+                                {leftLabels[rowIdx] || 'Tipo'}
+                            </Text>
                         </TouchableOpacity>
     
                         {/* Celdas del tablero */}
