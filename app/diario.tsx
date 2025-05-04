@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator, Alert, RootTagContext } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator, Alert, RootTagContext,ImageBackground } from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
@@ -322,8 +322,6 @@ export default function Diario() {
         setModalVisible(false);
       };
       
-      
-
       return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -343,45 +341,116 @@ export default function Diario() {
                 <View style={styles.row}>
                     <View style={styles.corner} />
                     {topLabels.map((label, idx) => {
-                        const tipo = label.toLowerCase();
+                        const tipo = label?.toLowerCase();
                         const style = typeStyles[tipo] || { backgroundColor: '#ccc', color: '#000' };
+                        const isMega = tipo === 'mega';
 
                         return (
-                            <TouchableOpacity key={idx} style={{ marginRight: 5, marginBottom: 5,marginLeft:18 }} onPress={() => abrirInfo(label)}>
-                            <Text style={{
-                                backgroundColor: style.backgroundColor,
-                                color: style.color,
-                                paddingVertical: 6,
-                                borderRadius: 10,
-                                fontFamily: 'Pixel',
-                                fontSize: 16,
-                                textAlign: 'center',
-                                minWidth: 80,
-                            }}>
-                                {label}
-                            </Text>
+                            <TouchableOpacity
+                                key={idx}
+                                style={{ marginRight: 6, marginBottom: 12, marginLeft: 18 }}
+                                onPress={() => abrirInfo(label)}
+                            >
+                                {isMega ? (
+                                    <ImageBackground
+                                        source={require('../assets/images/tfg/arcoiris.jpg')}
+                                        resizeMode="cover"
+                                        style={{
+                                            paddingVertical: 6,
+                                            paddingHorizontal: 10,
+                                            borderRadius: 10,
+                                            overflow: 'hidden',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            minWidth: 80,
+                                        }}
+                                        imageStyle={{
+                                            borderRadius: 10,
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                fontFamily: 'Pixel',
+                                                fontSize: 16,
+                                                color: '#000', 
+                                                textAlign: 'center',
+                                            }}
+                                        >
+                                            {label}
+                                        </Text>
+                                    </ImageBackground>
+                                ) : (
+                                    <Text
+                                        style={{
+                                            backgroundColor: style.backgroundColor,
+                                            color: style.color,
+                                            paddingVertical: 6,
+                                            borderRadius: 10,
+                                            fontFamily: 'Pixel',
+                                            fontSize: 16,
+                                            textAlign: 'center',
+                                            minWidth: 80,
+                                        }}
+                                    >
+                                        {label}
+                                    </Text>
+                                )}
                             </TouchableOpacity>
                         );
-                        })}
+                    })}
                 </View>
     
                 {/* Fila del tablero con las etiquetas a la izquierda */}
                 {Array.from({ length: 3 }).map((_, rowIdx) => (
                     <View key={rowIdx} style={styles.row}>
                         {/* Etiquetas de la izquierda */}
-                        <TouchableOpacity onPress={() => abrirInfo(leftLabels[rowIdx])} style={{ marginRight: 5, marginLeft:-6 }}>
-                            <Text style={{
-                                width: 95,
-                                textAlign: 'center',
-                                backgroundColor: typeStyles[leftLabels[rowIdx]?.toLowerCase()]?.backgroundColor || '#ccc',
-                                color: typeStyles[leftLabels[rowIdx]?.toLowerCase()]?.color || '#000',
-                                paddingVertical: 6,
-                                borderRadius: 10,
-                                fontFamily: 'Pixel',
-                                fontSize: 16,
-                            }}>
-                                {leftLabels[rowIdx] || 'Tipo'}
-                            </Text>
+                        <TouchableOpacity
+                            onPress={() => abrirInfo(leftLabels[rowIdx])}
+                            style={{ marginRight: 5, marginLeft: -6 }}
+                        >
+                            {leftLabels[rowIdx]?.toLowerCase() === 'mega' ? (
+                                <ImageBackground
+                                    source={require('../assets/images/tfg/arcoiris.jpg')}
+                                    resizeMode="cover"
+                                    style={{
+                                        width: 95,
+                                        paddingVertical: 6,
+                                        borderRadius: 10,
+                                        overflow: 'hidden',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    imageStyle={{
+                                        borderRadius: 10,
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            fontFamily: 'Pixel',
+                                            fontSize: 16,
+                                            color: 'fff',
+                                            textAlign: 'center',
+                                        }}
+                                    >
+                                        {leftLabels[rowIdx]}
+                                    </Text>
+                                </ImageBackground>
+                            ) : (
+                                <Text
+                                    style={{
+                                        width: 95,
+                                        textAlign: 'center',
+                                        backgroundColor: typeStyles[leftLabels[rowIdx]?.toLowerCase()]?.backgroundColor || '#ccc',
+                                        color: typeStyles[leftLabels[rowIdx]?.toLowerCase()]?.color || '#000',
+                                        paddingVertical: 6,
+                                        borderRadius: 10,
+                                        fontFamily: 'Pixel',
+                                        fontSize: 16,
+                                    }}
+                                >
+                                    {leftLabels[rowIdx] || 'Tipo'}
+                                </Text>
+                            )}
                         </TouchableOpacity>
     
                         {/* Celdas del tablero */}
