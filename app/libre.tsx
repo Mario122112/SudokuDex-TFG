@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, Flat
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
-import seedrandom from 'seedrandom';
 
 
 const tiposCombinables: { [key:string]: string[] } = {
@@ -126,6 +125,13 @@ export default function Diario() {
           setTimeOutModalVisible(true);
         }
     }, [remainingTime]);
+      
+
+      const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+      };
       
 
     const abrirInfo = (etiqueta: string) => {
@@ -390,6 +396,7 @@ export default function Diario() {
             <View style={styles.scoreContainer}>
                 <Text style={styles.scoreText}>Puntuación: {score}</Text>
                 <Image source={getBallImage(score)} style={styles.scoreIcon}/>
+                <Text style={styles.timerText}>{formatTime(remainingTime)}</Text>
             </View>
 
     
@@ -745,6 +752,62 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal>
+            {/* Modal de tiempo agotado */}
+<Modal
+    animationType="fade"
+    transparent={true}
+    visible={timeOutModalVisible}
+    onRequestClose={() => setTimeOutModalVisible(false)}
+>
+    <View style={{
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center'
+    }}>
+        <View style={{
+            backgroundColor: Colors.Fondo,
+            padding: 24,
+            borderRadius: 20,
+            borderColor: Colors.Tablero,
+            borderWidth: 2,
+            maxWidth: '80%'
+        }}>
+            <Text style={{
+                fontFamily: 'Pixel',
+                fontSize: 16,
+                color: Colors.blanco,
+                textAlign: 'center',
+                marginBottom: 16
+            }}>
+                ¡Se acabó el tiempo!
+            </Text>
+            <TouchableOpacity
+                onPress={() => {
+                    setTimeOutModalVisible(false);
+                    navigation.goBack();
+                    resetGame();
+                }}
+                style={{
+                    backgroundColor: Colors.Botones_menu,
+                    paddingVertical: 8,
+                    paddingHorizontal: 20,
+                    borderRadius: 10,
+                    alignSelf: 'center'
+                }}
+            >
+                <Text style={{
+                    fontFamily: 'Pixel',
+                    fontSize: 14,
+                    color: Colors.blanco
+                }}>
+                    Volver al Menú
+                </Text>
+            </TouchableOpacity>
+        </View>
+    </View>
+</Modal>
+
         </View>
     );
 }
@@ -754,30 +817,25 @@ const ficha_random = () => {
     const regionesBase = Object.keys(regionesPosibles);
     const regionesProbabilidad = [
       ...regionesBase,
-      'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega', 'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega'
+      'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega','Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega' // duplicados solo para aumentar la probabilidad
     ];
     const tipos: string[] = Object.keys(tiposCombinables).map(t =>
       t.charAt(0).toUpperCase() + t.slice(1)
     );
   
-    // Semilla basada en la fecha
-    const hoy = new Date();
-    const fechaSemilla = `${hoy.getFullYear()}-${hoy.getMonth() + 1}-${hoy.getDate()}`;
-    const rng = seedrandom(fechaSemilla);
-  
     const copiaRegions = [...regionesProbabilidad];
     const copiaTipos = [...tipos];
     const yaIncluidos = new Set<string>();
   
-    const incluirRegion = rng() < 0.5;
-    const filasTienenRegiones = rng() < 0.5;
+    const incluirRegion = Math.random() < 0.5;
+    const filasTienenRegiones = Math.random() < 0.5;
   
     let topLabels: string[] = [];
     let leftLabels: string[] = [];
   
     const shuffleArray = (array: string[]) => {
       for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(rng() * (i + 1));
+        const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
       }
       return array;
@@ -785,10 +843,10 @@ const ficha_random = () => {
   
     const extraerEtiqueta = (arr: string[]): string => {
       while (arr.length > 0) {
-        const index = Math.floor(rng() * arr.length);
+        const index = Math.floor(Math.random() * arr.length);
         const etiqueta = arr.splice(index, 1)[0];
         if (especiales.includes(etiqueta)) {
-          if (yaIncluidos.has(etiqueta)) continue;
+          if (yaIncluidos.has(etiqueta)) continue; // Evita duplicados
           yaIncluidos.add(etiqueta);
         }
         return etiqueta;
@@ -819,7 +877,7 @@ const ficha_random = () => {
       if (filasTienenRegiones) {
         const left: string[] = [];
   
-        const numRegiones = rng() < 0.5 ? 1 : 2;
+        const numRegiones = Math.random() < 0.5 ? 1 : 2;
         for (let i = 0; i < numRegiones; i++) {
           left.push(extraerEtiqueta(copiaRegions));
         }
@@ -836,7 +894,7 @@ const ficha_random = () => {
       } else {
         const top: string[] = [];
   
-        const numRegiones = rng() < 0.5 ? 1 : 2;
+        const numRegiones = Math.random() < 0.5 ? 1 : 2;
         for (let i = 0; i < numRegiones; i++) {
           top.push(extraerEtiqueta(copiaRegions));
         }
@@ -852,6 +910,7 @@ const ficha_random = () => {
         }
       }
     } else {
+      // Solo tipos
       const todosLosTipos = Object.keys(tiposCombinables);
       const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
   

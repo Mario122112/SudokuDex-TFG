@@ -8,11 +8,11 @@ import { NativeStackNavigationProp } from 'react-native-screens/lib/typescript/n
 
 
 const buttons = [
-    { label: 'Puzzle diario', icon: require('../assets/images/tfg/pokeball.png'), screen:'diario' },
-    { label: 'Carrusel', icon: require('../assets/images/tfg/superball.png') },
-    { label: 'Multijugador', icon: require('../assets/images/tfg/masterball.png') },
-    { label: 'Pokédex', icon: require('../assets/images/tfg/pokedex.gif') },
-    { label: 'Iniciar Sesión', icon: require('../assets/images/tfg/porygon.png') },
+    { label: 'Puzzle diario ', icon: require('../assets/images/tfg/pokeball.png'), screen:'diario' },
+    { label: 'Carrusel ', icon: require('../assets/images/tfg/superball.png') },
+    { label: 'Puzzle Libre', icon: require('../assets/images/tfg/masterball.png'), screen:'libre' },
+    { label: 'Pokédex ', icon: require('../assets/images/tfg/pokedex.gif') },
+    { label: 'Iniciar Sesión ', icon: require('../assets/images/tfg/porygon.png') },
   ];
   
   export default function HomeScreen() {
