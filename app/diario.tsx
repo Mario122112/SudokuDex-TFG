@@ -5,12 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
 
 
-const allLabels = [
-    'Agua', 'Fuego', 'Planta', 'Eléctrico', 'Hielo', 'Tierra', 'Bicho', 'Fantasma',
-    'Roca', 'Acero', 'Dragón', 'Hada', 'Lucha', 'Normal', 'Veneno', 'Psíquico', 'Siniestro', 'Volador',
-    'Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea'
-];
-
 const tiposCombinables: { [key:string]: string[] } = {
     'fuego': ['planta', 'bicho', 'hielo','dragon','electrico','lucha','fantasma','tierra','normal','volador','veneno','psiquico','roca','agua','siniestro','acero'],
     'agua': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','lucha','siniestro','acero','hada'],
@@ -19,7 +13,7 @@ const tiposCombinables: { [key:string]: string[] } = {
     'hielo': ['agua', 'planta','bicho','dragon','electrico','lucha','fuego','fantasma','tierra','volador','psiquico','roca','siniestro','acero','hada'],
     'tierra': ['bicho','dragon','electrico','lucha','fuego','fantasma','planta','hielo','normal','volador','veneno','psiquico','roca','agua','siniestro','acero'],
     'roca': ['bicho','dragon','electrico','fuego','lucha','planta','tierra','hielo','volador','veneno','psiquico','agua','siniestro','acero','hada'],
-    'acero': ['lucha', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','agua','siniestro','hada'],
+    'acero': ['lucha','roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','agua','siniestro','hada'],
     'dragon': ['electrico','lucha','fuego','fantasma','planta','tierra','hielo','normal','volador','veneno','psiquico','roca','agua','siniestro','acero','hada'],
     'hada': ['normal', 'roca','bicho','dragon','electrico','fantasma','planta','hielo','volador','veneno','psiquico','agua','siniestro','acero','lucha'],
     'lucha': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','agua','siniestro','acero','hada'],
@@ -103,12 +97,35 @@ export default function Diario() {
     const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea','Hisui'];
     const [startTime, setStartTime] = useState<Date | null>(null);
     const [score, setScore] = useState(0);
+    const [remainingTime, setRemainingTime] = useState(120);
 
     useEffect(() => {
     if (!startTime) {
         setStartTime(new Date());
     }
     }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+          setRemainingTime(prev => {
+            if (prev <= 0) {
+              clearInterval(interval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      
+        return () => clearInterval(interval); // Limpiar al desmontar
+      }, []);
+      
+
+      const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+      };
+      
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
@@ -200,15 +217,6 @@ export default function Diario() {
         setModalVisible(true);
     };
 
-    const handleSearch = async () => {
-        if (!query) return;
-        const filtered = allPokemonNames.filter(name =>
-            name.toLowerCase().includes(query.toLowerCase())
-        );
-        setResults(filtered);
-    };
-    
-
     const handleSelect = async (
         pokemon: any,
         regions: string[],
@@ -275,15 +283,12 @@ export default function Diario() {
       
         let valido = false;
       
-        // Verifica si es una Mega o G-Max
-        const esMegaO_Gmax = sufijosMega.some(sufijo => nombrePokemon.includes(sufijo));
+        const esMegaO_Gmax = sufijosMega.some((sufijo: string) => nombrePokemon.includes(sufijo));
       
-        // Verifica que el Pokémon cumpla con los tipos de fila o columna
         const cumpleConTipos = (tipos: string[]) => {
           return tipos.some((tipo: string) => tipo === tipoFila || tipo === tipoColumna);
         };
       
-        // Si la fila o columna contiene "Mega", solo se acepta la forma Mega
         const esFormaMega = formattedFila === 'Mega' || formattedColumna === 'Mega';
         const esFormaGmax = formattedFila === 'G-max' || formattedColumna === 'G-max';
       
@@ -298,24 +303,26 @@ export default function Diario() {
           const esNativoDeRegion = regionPokemon === region;
       
           valido = tiposPokemon.includes(tipo) && (esFormaRegional || esNativoDeRegion);
-        } else if (esMegaO_Gmax) {
-          // Si la fila o columna tiene la etiqueta "Mega" o "G-Max", solo se acepta esa forma
+        } else if (esFormaMega || esFormaGmax) {
+          // Casillas especiales que piden Mega o Gmax
           if (esFormaMega && nombrePokemon.includes('-mega')) {
             valido = cumpleConTipos(tiposPokemon);
           } else if (esFormaGmax && nombrePokemon.includes('-gmax')) {
             valido = cumpleConTipos(tiposPokemon);
           } else {
-            valido = false; // Si no es la forma correcta, lo rechaza
+            valido = false;
           }
         } else {
-          // Si no es Mega ni G-Max, solo se valida el tipo
+          // Casillas normales (ni Mega ni Gmax)
           valido = cumpleConTipos(tiposPokemon);
         }
       
-        // Comprobación de la forma base, si la fila o columna es Mega o G-Max, solo acepta la forma correcta
+        // Validaciones extra por forma
         if (esFormaMega && !nombrePokemon.includes('-mega')) {
           valido = false;
-        } else if (esFormaGmax && !nombrePokemon.includes('-gmax')) {
+        }
+      
+        if (esFormaGmax && !nombrePokemon.includes('-gmax')) {
           valido = false;
         }
       
@@ -326,18 +333,23 @@ export default function Diario() {
           });
           return;
         }
-
-                // Evita que se sobrescriba una casilla ya ocupada
+      
         if (board[row][col]) return;
-
-        // Calcula el tiempo transcurrido desde el inicio
+      
         const now = new Date();
         const elapsedSeconds = Math.floor((now.getTime() - (startTime?.getTime() || 0)) / 1000);
+        const totalDuration = 120; // 2 minutos = 120 segundos
+        const remainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
 
-        // Puntaje máximo que se va reduciendo hasta 0 en 2 minutos (120s)
-        const basePoints = Math.max(0, 150 - Math.floor((elapsedSeconds / 150) * 100));
-        setScore(prev => prev + basePoints);
+        // Calculamos el extra proporcional (por ejemplo: 90s => 1.5)
+        const timeMultiplier = remainingSeconds / 60; // para que 60s = 1.0, 120s = 2.0
 
+        // Puntos: 100 base + extra proporcional al tiempo
+        const basePoints = 100;
+        const extraPoints = Math.floor(timeMultiplier * 100);
+
+        const totalPoints = basePoints + extraPoints;
+        setScore(prev => prev + totalPoints);
       
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
@@ -357,6 +369,7 @@ export default function Diario() {
       
         setModalVisible(false);
       };
+      
 
       const resetGame = () => {
         setBoard(inicializaTableroVacio());
@@ -375,7 +388,8 @@ export default function Diario() {
     
             <View style={styles.scoreContainer}>
                 <Text style={styles.scoreText}>Puntuación: {score}</Text>
-                <Image source={getBallImage(score)} style={styles.scoreIcon} />
+                <Image source={getBallImage(score)} style={styles.scoreIcon}/>
+                <Text style={styles.timerText}>{formatTime(remainingTime)}</Text>
             </View>
 
     
@@ -499,14 +513,22 @@ export default function Diario() {
                         {/* Celdas del tablero */}
                         {Array.from({ length: 3 }).map((_, colIdx) => {
                             const index = rowIdx * 3 + colIdx;
+                            const isOccupied = !!sprites[index];
+
                             return (
-                                <TouchableOpacity key={colIdx} style={styles.cell} onPress={() => handleCellPress(index)}>
+                                <TouchableOpacity
+                                    key={colIdx}
+                                    style={styles.cell}
+                                    onPress={() => handleCellPress(index)}
+                                    disabled={!!sprites[index]} // desactiva si ya hay un Pokémon
+                                    activeOpacity={0.6} // da una sensación táctil suave
+                                    >
                                     {sprites[index] && (
                                         <Image source={{ uri: sprites[index] }} style={{ width: 85, height: 85 }} />
                                     )}
                                 </TouchableOpacity>
                             );
-                        })}
+                            })}
                     </View>
                 ))}
             </View>
@@ -963,5 +985,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginRight:10,
         marginLeft:-3        
-    }
+    },
+    disabledCell: {
+        opacity: 0.5,
+    },
+    timerText: {
+        fontSize: 25,
+        color: 'white',
+        marginLeft: 60,
+        fontFamily: 'Pixel'
+    },
 });
