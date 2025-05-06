@@ -99,6 +99,7 @@ export default function Diario() {
     const [score, setScore] = useState(0);
     const [remainingTime, setRemainingTime] = useState(120);
     const [timeOutModalVisible, setTimeOutModalVisible] = useState(false);
+     const [surrenderModal, setsurrenderModal] = useState(false);
 
     useEffect(() => {
     if (!startTime) {
@@ -540,8 +541,9 @@ export default function Diario() {
                 ))}
             </View>
     
-            <TouchableOpacity style={styles.surrenderButton} onPress={() =>{resetGame(); navigation.goBack()} }>
-                <Text style={styles.surrenderText}>Rendirse</Text>
+            <TouchableOpacity
+                    style={styles.surrenderButton} onPress={() => {resetGame();setsurrenderModal(true);}}>
+                    <Text style={styles.surrenderText}>Rendirse</Text>
             </TouchableOpacity>
     
             {/* Modal de búsqueda */}
@@ -753,61 +755,139 @@ export default function Diario() {
                 </View>
             </Modal>
             {/* Modal de tiempo agotado */}
-<Modal
-    animationType="fade"
-    transparent={true}
-    visible={timeOutModalVisible}
-    onRequestClose={() => setTimeOutModalVisible(false)}
->
-    <View style={{
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center'
-    }}>
-        <View style={{
-            backgroundColor: Colors.Fondo,
-            padding: 24,
-            borderRadius: 20,
-            borderColor: Colors.Tablero,
-            borderWidth: 2,
-            maxWidth: '80%'
-        }}>
-            <Text style={{
-                fontFamily: 'Pixel',
-                fontSize: 16,
-                color: Colors.blanco,
-                textAlign: 'center',
-                marginBottom: 16
-            }}>
-                ¡Se acabó el tiempo!
-            </Text>
-            <TouchableOpacity
-                onPress={() => {
-                    setTimeOutModalVisible(false);
-                    navigation.goBack();
-                    resetGame();
-                }}
-                style={{
-                    backgroundColor: Colors.Botones_menu,
-                    paddingVertical: 8,
-                    paddingHorizontal: 20,
-                    borderRadius: 10,
-                    alignSelf: 'center'
-                }}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={timeOutModalVisible}
+                onRequestClose={() => setTimeOutModalVisible(false)}
             >
-                <Text style={{
-                    fontFamily: 'Pixel',
-                    fontSize: 14,
-                    color: Colors.blanco
+                <View style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    justifyContent: 'center',
+                    alignItems: 'center'
                 }}>
-                    Volver al Menú
-                </Text>
-            </TouchableOpacity>
-        </View>
-    </View>
-</Modal>
+                    <View style={{
+                        backgroundColor: Colors.Fondo,
+                        padding: 24,
+                        borderRadius: 20,
+                        borderColor: Colors.Tablero,
+                        borderWidth: 2,
+                        maxWidth: '80%'
+                    }}>
+                        <Text style={{
+                            fontFamily: 'Pixel',
+                            fontSize: 16,
+                            color: Colors.blanco,
+                            textAlign: 'center',
+                            marginBottom: 16
+                        }}>
+                            ¡Se acabó el tiempo!
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setTimeOutModalVisible(false);
+                                navigation.goBack();
+                                resetGame();
+                            }}
+                            style={{
+                                backgroundColor: Colors.Botones_menu,
+                                paddingVertical: 8,
+                                paddingHorizontal: 20,
+                                borderRadius: 10,
+                                alignSelf: 'center'
+                            }}
+                        >
+                            <Text style={{
+                                fontFamily: 'Pixel',
+                                fontSize: 14,
+                                color: Colors.blanco
+                            }}>
+                                Volver al Menú
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+{           /* Modal rendirte*/}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={surrenderModal}
+                onRequestClose={() => setsurrenderModal(false)}
+                >
+                <View style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <View style={{
+                    backgroundColor: Colors.Fondo,
+                    padding: 24,
+                    borderRadius: 20,
+                    borderColor: Colors.Tablero,
+                    borderWidth: 2,
+                    maxWidth: '80%'
+                    }}>
+                    <Text style={{
+                        fontFamily: 'Pixel',
+                        fontSize: 16,
+                        color: Colors.blanco,
+                        textAlign: 'center',
+                        marginBottom: 16
+                    }}>
+                        ¿Estás seguro de que quieres rendirte?{'\n'}Perderás todo tu progreso.
+                    </Text>
 
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <TouchableOpacity
+                        onPress={() => setsurrenderModal(false)}
+                        style={{
+                            backgroundColor: Colors.Botones_menu,
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
+                            borderRadius: 10,
+                            marginRight: 10,
+                            flex: 1
+                        }}
+                        >
+                        <Text style={{
+                            fontFamily: 'Pixel',
+                            fontSize: 14,
+                            color: Colors.blanco,
+                            textAlign: 'center'
+                        }}>
+                            Cancelar
+                        </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                        onPress={() => {
+                            setsurrenderModal(false);
+                            navigation.goBack(); // Aquí va la acción de rendirse
+                        }}
+                        style={{
+                            backgroundColor: Colors.Botones_menu,
+                            paddingVertical: 8,
+                            paddingHorizontal: 16,
+                            borderRadius: 10,
+                            flex: 1
+                        }}
+                        >
+                        <Text style={{
+                            fontFamily: 'Pixel',
+                            fontSize: 14,
+                            color: Colors.blanco,
+                            textAlign: 'center'
+                        }}>
+                            Rendirse
+                        </Text>
+                        </TouchableOpacity>
+                    </View>
+                    </View>
+                </View>
+            </Modal> 
         </View>
     );
 }

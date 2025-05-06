@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator, Alert, RootTagContext,ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator, Alert, RootTagContext,ImageBackground, Button } from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
-import seedrandom from 'seedrandom';
 
 
 const tiposCombinables: { [key:string]: string[] } = {
@@ -91,7 +90,6 @@ export default function Diario() {
     const [errorModal, setErrorModal] = useState({ visible: false, message: '' });
     const [allPokemonNames, setAllPokemonNames] = useState<string[]>([]);
     const [pokemonSprites, setPokemonSprites] = useState<{ [name: string]: string }>({});
-    const [victoryModalVisible, setVictoryModalVisible] = useState(false);
     const [board, setBoard] = useState(
         Array(3).fill(null).map(() => Array(3).fill(null))
     );
@@ -100,7 +98,12 @@ export default function Diario() {
     const [score, setScore] = useState(0);
     const [remainingTime, setRemainingTime] = useState(120);
     const [timeOutModalVisible, setTimeOutModalVisible] = useState(false);
+    const [boardCompletedModalVisible, setBoardCompletedModalVisible] = useState(false);
+    const [lives, setLives] = useState(2);
     const [surrenderModal, setsurrenderModal] = useState(false);
+    const [contador, setContador] = useState(0);
+
+
 
     useEffect(() => {
     if (!startTime) {
@@ -122,11 +125,25 @@ export default function Diario() {
         return () => clearInterval(interval); // Limpiar al desmontar
     }, []);
 
-      useEffect(() => {
+    useEffect(() => {
         if (remainingTime <= 0) {
           setTimeOutModalVisible(true);
         }
     }, [remainingTime]);
+
+    useEffect(() => {
+        if (isBoardComplete()) {
+            setBoardCompletedModalVisible(true);
+        }
+    }, [board]);
+      
+      
+
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    };
       
 
     const abrirInfo = (etiqueta: string) => {
@@ -285,8 +302,6 @@ export default function Diario() {
       
         let valido = false;
       
-        const esMegaO_Gmax = sufijosMega.some((sufijo: string) => nombrePokemon.includes(sufijo));
-      
         const cumpleConTipos = (tipos: string[]) => {
           return tipos.some((tipo: string) => tipo === tipoFila || tipo === tipoColumna);
         };
@@ -329,12 +344,17 @@ export default function Diario() {
         }
       
         if (!valido) {
-          setErrorModal({
-            visible: true,
-            message: `Este Pokémon no cumple con los requisitos:\n• ${labelFila}\n• ${labelColumna}`
-          });
-          return;
-        }
+            setLives(prev => prev - 1);
+            setErrorModal({
+              visible: true,
+              message: `Este Pokémon no cumple con los requisitos:\n• ${labelFila}\n• ${labelColumna}`
+            });
+          
+            if (lives - 1 <= 0) {
+              navigation.goBack(); 
+            }
+            return;
+          }
       
         if (board[row][col]) return;
       
@@ -358,7 +378,7 @@ export default function Diario() {
         setBoard(newBoard);
       
         if (isBoardComplete()) {
-          setVictoryModalVisible(true);
+            setBoardCompletedModalVisible(true);
         }
       
         const sprite = pokemon.sprites.front_default;
@@ -388,9 +408,11 @@ export default function Diario() {
                 </TouchableOpacity>
             </View>
     
-            <View style={styles.scoreContainer}>
-                <Text style={styles.scoreText}>Puntuación: {score}</Text>
-                <Image source={getBallImage(score)} style={styles.scoreIcon}/>
+            <View style={[styles.scoreContainer]}>
+                <Text style={[styles.scoreText,{top:-40}]}>Puntuación: {score}</Text>
+                <Image source={getBallImage(score)} style={[styles.scoreIcon,{top:-40}]}/>
+                <Text style={[styles.timerText,{top:-27}]}>{formatTime(remainingTime)}</Text>
+                <Text style={[styles.timerText,{top:35,marginRight:146}]}>Racha Tableros: {contador}</Text>
             </View>
 
     
@@ -535,7 +557,9 @@ export default function Diario() {
             </View>
     
             <TouchableOpacity
-                style={styles.surrenderButton} onPress={() => setsurrenderModal(true)}>
+                style={styles.surrenderButton}
+                onPress={() => setsurrenderModal(true)}
+                >
                 <Text style={styles.surrenderText}>Rendirse</Text>
             </TouchableOpacity>
     
@@ -692,62 +716,7 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal>
-            {/* Modal de victoria */}
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={victoryModalVisible}
-                onRequestClose={() => setVictoryModalVisible(false)}
-            >
-                <View style={{
-                    flex: 1,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Se cambió la opacidad para coincidir con el modal de error
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}>
-                    <View style={{
-                        backgroundColor: Colors.Fondo,
-                        padding: 24,
-                        borderRadius: 20,
-                        borderColor: Colors.Tablero,
-                        borderWidth: 2,
-                        maxWidth: '80%'
-                    }}>
-                        <Text style={{
-                            fontFamily: 'Pixel',
-                            fontSize: 16,
-                            color: Colors.blanco,
-                            textAlign: 'center',
-                            marginBottom: 16
-                        }}>
-                            ¡Has completado el tablero, buen trabajo!
-                        </Text>
-                        <TouchableOpacity
-                            onPress={() => {
-                                setVictoryModalVisible(false);
-                                navigation.goBack();
-                                resetGame();
-                            }}
-                            style={{
-                                backgroundColor: Colors.Botones_menu,
-                                paddingVertical: 8,
-                                paddingHorizontal: 20,
-                                borderRadius: 10,
-                                alignSelf: 'center'
-                            }}
-                        >
-                            <Text style={{
-                                fontFamily: 'Pixel',
-                                fontSize: 14,
-                                color: Colors.blanco
-                            }}>
-                                Volver al Menú
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-            {/*Modal rendirse*/ }
+            {/* Modal rendirte*/}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -826,6 +795,88 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal>
+
+            {/* Modal de tiempo agotado */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={timeOutModalVisible}
+                onRequestClose={() => setTimeOutModalVisible(false)}
+            >
+                <View style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <View style={{
+                        backgroundColor: Colors.Fondo,
+                        padding: 24,
+                        borderRadius: 20,
+                        borderColor: Colors.Tablero,
+                        borderWidth: 2,
+                        maxWidth: '80%'
+                    }}>
+                        <Text style={{
+                            fontFamily: 'Pixel',
+                            fontSize: 16,
+                            color: Colors.blanco,
+                            textAlign: 'center',
+                            marginBottom: 16
+                        }}>
+                            ¡Se acabó el tiempo!
+                        </Text>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setTimeOutModalVisible(false);
+                                navigation.goBack();
+                                resetGame();
+                            }}
+                            style={{
+                                backgroundColor: Colors.Botones_menu,
+                                paddingVertical: 8,
+                                paddingHorizontal: 20,
+                                borderRadius: 10,
+                                alignSelf: 'center'
+                            }}
+                        >
+                            <Text style={{
+                                fontFamily: 'Pixel',
+                                fontSize: 14,
+                                color: Colors.blanco
+                            }}>
+                                Volver al Menú
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            <Modal visible={boardCompletedModalVisible} transparent animationType="slide">
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <View style={{ backgroundColor: 'white', padding: 30, borderRadius: 20 }}>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 20 }}>¡Tablero completado!</Text>
+                    <Button title="Continuar" onPress={() => {
+                        // Cerrar el modal
+                        setBoardCompletedModalVisible(false);
+                        // Reiniciar tablero
+                        resetGame();
+                        // Generar nuevas etiquetas
+                        ficha_random();
+                        // Reiniciar tiempo
+                        setRemainingTime(120); // o lo que uses
+                        setStartTime(new Date());
+
+                        // Restaurar vida si falta alguna
+                        if (lives < 2) {
+                        setLives(2);
+                        }
+                        
+                        setContador(contador + 1);
+
+                    }} />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -835,30 +886,25 @@ const ficha_random = () => {
     const regionesBase = Object.keys(regionesPosibles);
     const regionesProbabilidad = [
       ...regionesBase,
-      'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega', 'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega'
+      'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega','Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega' // duplicados solo para aumentar la probabilidad
     ];
     const tipos: string[] = Object.keys(tiposCombinables).map(t =>
       t.charAt(0).toUpperCase() + t.slice(1)
     );
   
-    // Semilla basada en la fecha
-    const hoy = new Date();
-    const fechaSemilla = `${hoy.getFullYear()}-${hoy.getMonth() + 1}-${hoy.getDate()}`;
-    const rng = seedrandom(fechaSemilla);
-  
     const copiaRegions = [...regionesProbabilidad];
     const copiaTipos = [...tipos];
     const yaIncluidos = new Set<string>();
   
-    const incluirRegion = rng() < 0.5;
-    const filasTienenRegiones = rng() < 0.5;
+    const incluirRegion = Math.random() < 0.5;
+    const filasTienenRegiones = Math.random() < 0.5;
   
     let topLabels: string[] = [];
     let leftLabels: string[] = [];
   
     const shuffleArray = (array: string[]) => {
       for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(rng() * (i + 1));
+        const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
       }
       return array;
@@ -866,10 +912,10 @@ const ficha_random = () => {
   
     const extraerEtiqueta = (arr: string[]): string => {
       while (arr.length > 0) {
-        const index = Math.floor(rng() * arr.length);
+        const index = Math.floor(Math.random() * arr.length);
         const etiqueta = arr.splice(index, 1)[0];
         if (especiales.includes(etiqueta)) {
-          if (yaIncluidos.has(etiqueta)) continue;
+          if (yaIncluidos.has(etiqueta)) continue; // Evita duplicados
           yaIncluidos.add(etiqueta);
         }
         return etiqueta;
@@ -900,7 +946,7 @@ const ficha_random = () => {
       if (filasTienenRegiones) {
         const left: string[] = [];
   
-        const numRegiones = rng() < 0.5 ? 1 : 2;
+        const numRegiones = Math.random() < 0.5 ? 1 : 2;
         for (let i = 0; i < numRegiones; i++) {
           left.push(extraerEtiqueta(copiaRegions));
         }
@@ -917,7 +963,7 @@ const ficha_random = () => {
       } else {
         const top: string[] = [];
   
-        const numRegiones = rng() < 0.5 ? 1 : 2;
+        const numRegiones = Math.random() < 0.5 ? 1 : 2;
         for (let i = 0; i < numRegiones; i++) {
           top.push(extraerEtiqueta(copiaRegions));
         }
@@ -933,6 +979,7 @@ const ficha_random = () => {
         }
       }
     } else {
+      // Solo tipos
       const todosLosTipos = Object.keys(tiposCombinables);
       const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
   
