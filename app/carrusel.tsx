@@ -96,7 +96,7 @@ export default function Diario() {
     const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea','Hisui'];
     const [startTime, setStartTime] = useState<Date | null>(null);
     const [score, setScore] = useState(0);
-    const [remainingTime, setRemainingTime] = useState(120);
+    const [remainingTime, setRemainingTime] = useState(150);
     const [timeOutModalVisible, setTimeOutModalVisible] = useState(false);
     const [boardCompletedModalVisible, setBoardCompletedModalVisible] = useState(false);
     const [lives, setLives] = useState(2);
@@ -337,9 +337,15 @@ export default function Diario() {
             valido = false;
           }
         } else {
-          // Casillas normales (ni Mega ni Gmax)
-          valido = cumpleConTipos(tiposPokemon);
-        }
+            // Casillas normales (ni Mega ni Gmax)
+            if (tipoFila && tipoColumna && tipoFila !== tipoColumna) {
+              // Si ambos son tipos distintos, debe tener AMBOS
+              valido = tiposPokemon.includes(tipoFila) && tiposPokemon.includes(tipoColumna);
+            } else {
+              // Si solo hay un tipo (porque la otra etiqueta es región u otra cosa), vale con que tenga uno
+              valido = cumpleConTipos(tiposPokemon);
+            }
+          }
       
         // Validaciones extra por forma
         if (esFormaMega && !nombrePokemon.includes('-mega')) {
@@ -409,7 +415,7 @@ export default function Diario() {
       return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>Puzzle diario</Text>
+                <Text style={styles.title}>Carrusel</Text>
                 <TouchableOpacity>
                     <Image source={require('../assets/images/tfg/help.png')} style={styles.infoIcon} />
                 </TouchableOpacity>
@@ -418,8 +424,18 @@ export default function Diario() {
             <View style={[styles.scoreContainer]}>
                 <Text style={[styles.scoreText,{top:-40}]}>Puntuación: {score}</Text>
                 <Image source={getBallImage(score)} style={[styles.scoreIcon,{top:-40}]}/>
-                <Text style={[styles.timerText,{top:-27}]}>{formatTime(remainingTime)}</Text>
+                <Text style={[styles.timerText,{top:-26}]}>{formatTime(remainingTime)}</Text>
                 <Text style={[styles.timerText,{top:35,marginRight:146}]}>Racha Tableros: {contador}</Text>
+            </View>
+
+            <View style={[styles.pikachuContainer,{left:25,top:260}]}>
+                <Image
+                    source={require('../assets/images/tfg/pikachu.png')}
+                    style={[
+                    styles.pikachu,
+                    lives < 2 && styles.pikachuOscuro,
+                    ]}
+                />
             </View>
 
     
@@ -859,32 +875,66 @@ export default function Diario() {
                 </View>
             </Modal>
             <Modal visible={boardCompletedModalVisible} transparent animationType="slide">
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                    <View style={{ backgroundColor: 'white', padding: 30, borderRadius: 20 }}>
-                    <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 20 }}>¡Tablero completado!</Text>
-                    <Button title="Continuar" onPress={() => {
+                <View style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <View style={{
+                    backgroundColor: Colors.Fondo,
+                    padding: 24,
+                    borderRadius: 20,
+                    borderColor: Colors.Tablero,
+                    borderWidth: 2,
+                    maxWidth: '80%'
+                    }}>
+                    <Text style={{
+                        fontFamily: 'Pixel',
+                        fontSize: 16,
+                        color: Colors.blanco,
+                        textAlign: 'center',
+                        marginBottom: 16
+                    }}>
+                        ¡Tablero completado!
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => {
                         // Cerrar el modal
                         setBoardCompletedModalVisible(false);
                         // Reiniciar tablero
                         resetGame();
-                        
                         // Generar nuevas etiquetas
                         generarNuevasEtiquetas();
                         // Reiniciar tiempo
-                        setRemainingTime(120); // o lo que uses
+                        setRemainingTime(150); // o lo que uses
                         setStartTime(new Date());
-
                         // Restaurar vida si falta alguna
                         if (lives < 2) {
-                        setLives(2);
+                            setLives(2);
                         }
-                        
                         setContador(contador + 1);
-
-                    }} />
+                        }}
+                        style={{
+                        backgroundColor: Colors.Botones_menu,
+                        paddingVertical: 8,
+                        paddingHorizontal: 20,
+                        borderRadius: 10,
+                        alignSelf: 'center'
+                        }}
+                    >
+                        <Text style={{
+                        fontFamily: 'Pixel',
+                        fontSize: 14,
+                        color: Colors.blanco
+                        }}>
+                        Continuar
+                        </Text>
+                    </TouchableOpacity>
                     </View>
                 </View>
-            </Modal>
+                </Modal>
+
         </View>
     );
 }
@@ -1137,5 +1187,19 @@ const styles = StyleSheet.create({
         position: 'absolute', 
         top: 12, 
         right:32,
+    },
+    pikachuContainer: {
+        position: 'absolute',
+        top: 20, // ajusta según lo que necesites
+        right: 20,
+    },
+    pikachu: {
+        width: 70,
+        height: 100,
+        resizeMode: 'contain',
+    },
+    pikachuOscuro: {
+        tintColor: 'black',
+        opacity: 0.4,
     },
 });
