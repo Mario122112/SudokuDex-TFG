@@ -860,6 +860,13 @@ export default function Diario() {
                         setBoardCompletedModalVisible(false);
                         // Reiniciar tablero
                         resetGame();
+                        /*const generarNuevasEtiquetas = () => {
+                          const nuevas = ficha_random();
+                              if (nuevas) {
+                                setTopLabels(nuevas.top);
+                                setLeftLabels(nuevas.left);
+                                }
+                          };*/
                         // Generar nuevas etiquetas
                         ficha_random();
                         // Reiniciar tiempo
