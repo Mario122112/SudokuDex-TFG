@@ -104,7 +104,6 @@ export default function Diario() {
     const [contador, setContador] = useState(0);
 
 
-
     useEffect(() => {
     if (!startTime) {
         setStartTime(new Date());
@@ -143,6 +142,14 @@ export default function Diario() {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    };
+
+    const generarNuevasEtiquetas = () => {
+        const nuevas = ficha_random();
+            if (nuevas) {
+              setTopLabels(nuevas.top);
+              setLeftLabels(nuevas.left);
+              }
     };
       
 
@@ -395,7 +402,7 @@ export default function Diario() {
 
       const resetGame = () => {
         setBoard(inicializaTableroVacio());
-        setScore(0);
+        setSprites(Array(9).fill(null));
         setStartTime(new Date());
       };
       
@@ -860,15 +867,9 @@ export default function Diario() {
                         setBoardCompletedModalVisible(false);
                         // Reiniciar tablero
                         resetGame();
-                        /*const generarNuevasEtiquetas = () => {
-                          const nuevas = ficha_random();
-                              if (nuevas) {
-                                setTopLabels(nuevas.top);
-                                setLeftLabels(nuevas.left);
-                                }
-                          };*/
+                        
                         // Generar nuevas etiquetas
-                        ficha_random();
+                        generarNuevasEtiquetas();
                         // Reiniciar tiempo
                         setRemainingTime(120); // o lo que uses
                         setStartTime(new Date());
