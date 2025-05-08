@@ -392,8 +392,7 @@ export default function Diario() {
                 <Text style={styles.scoreText}>Puntuación: {score}</Text>
                 <Image source={getBallImage(score)} style={styles.scoreIcon}/>
             </View>
-
-    
+        
             <View style={styles.gridContainer}>
                 {/* Fila superior con las etiquetas */}
                 <View style={styles.row}>
@@ -977,12 +976,12 @@ const styles = StyleSheet.create({
     },
     title: {
         color: Colors.blanco,
-        fontSize: 32,
+        fontSize: 40,
         fontFamily: 'Pixel',
     },
     infoIcon: {
-        width: 30,
-        height: 30,
+        width: 35,
+        height: 35,
     },
     scoreContainer: {
         flexDirection: 'row',
@@ -1000,7 +999,7 @@ const styles = StyleSheet.create({
         marginLeft: 5,
     },
     gridContainer: {
-        marginTop: 20,
+        marginTop: -20,
     },
     row: {
         flexDirection: 'row',

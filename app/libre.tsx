@@ -388,7 +388,7 @@ export default function Diario() {
       return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.title}>Puzzle diario</Text>
+                <Text style={styles.title}>Puzzle Libre</Text>
                 <TouchableOpacity>
                     <Image source={require('../assets/images/tfg/help.png')} style={styles.infoIcon} />
                 </TouchableOpacity>
@@ -1035,12 +1035,12 @@ const styles = StyleSheet.create({
     },
     title: {
         color: Colors.blanco,
-        fontSize: 32,
+        fontSize: 40,
         fontFamily: 'Pixel',
     },
     infoIcon: {
-        width: 30,
-        height: 30,
+        width: 35,
+        height: 35,
     },
     scoreContainer: {
         flexDirection: 'row',
@@ -1058,7 +1058,7 @@ const styles = StyleSheet.create({
         marginLeft: 5,
     },
     gridContainer: {
-        marginTop: 20,
+        marginTop: -20,
     },
     row: {
         flexDirection: 'row',

@@ -102,6 +102,7 @@ export default function Diario() {
     const [lives, setLives] = useState(2);
     const [surrenderModal, setsurrenderModal] = useState(false);
     const [contador, setContador] = useState(0);
+    const [gameOverModalVisible, setGameOverModalVisible] = useState(false);
 
 
     useEffect(() => {
@@ -364,7 +365,7 @@ export default function Diario() {
             });
           
             if (lives - 1 <= 0) {
-              navigation.goBack(); 
+              setGameOverModalVisible(true); 
             }
             return;
           }
@@ -933,8 +934,57 @@ export default function Diario() {
                     </TouchableOpacity>
                     </View>
                 </View>
-                </Modal>
+            </Modal>
+            {/*Modal vidas perdidas*/}
+            <Modal visible={gameOverModalVisible} transparent animationType="slide">
+                <View style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <View style={{
+                    backgroundColor: Colors.Fondo,
+                    padding: 24,
+                    borderRadius: 20,
+                    borderColor: Colors.Tablero,
+                    borderWidth: 2,
+                    maxWidth: '80%'
+                    }}>
+                    <Text style={{
+                        fontFamily: 'Pixel',
+                        fontSize: 16,
+                        color: Colors.blanco,
+                        textAlign: 'center',
+                        marginBottom: 16
+                    }}>
+                        ¡Te has quedado sin vidas!
+                    </Text>
 
+                    <TouchableOpacity
+                        onPress={() => {
+                        setGameOverModalVisible(false);
+                        navigation.goBack();
+                        }}
+                        style={{
+                        backgroundColor: Colors.Botones_menu,
+                        paddingVertical: 8,
+                        paddingHorizontal: 20,
+                        borderRadius: 10,
+                        alignSelf: 'center'
+                        }}
+                    >
+                        <Text style={{
+                        fontFamily: 'Pixel',
+                        fontSize: 14,
+                        color: Colors.blanco
+                        }}>
+                        Volver al menú
+                        </Text>
+                    </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -1082,12 +1132,12 @@ const styles = StyleSheet.create({
     },
     title: {
         color: Colors.blanco,
-        fontSize: 32,
+        fontSize: 40,
         fontFamily: 'Pixel',
     },
     infoIcon: {
-        width: 30,
-        height: 30,
+        width: 35,
+        height: 35,
     },
     scoreContainer: {
         flexDirection: 'row',

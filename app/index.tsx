@@ -11,7 +11,7 @@ const buttons = [
     { label: 'Puzzle diario ', icon: require('../assets/images/tfg/pokeball.png'), screen:'diario' },
     { label: 'Carrusel ', icon: require('../assets/images/tfg/superball.png'),screen:'carrusel' },
     { label: 'Puzzle Libre', icon: require('../assets/images/tfg/masterball.png'), screen:'libre' },
-    { label: 'Pokédex ', icon: require('../assets/images/tfg/pokedex.gif') },
+    { label: 'Pokédex ', icon: require('../assets/images/tfg/pokedex.gif'),screen:'pokedex' },
     { label: 'Iniciar Sesión ', icon: require('../assets/images/tfg/porygon.png') },
   ];
   
