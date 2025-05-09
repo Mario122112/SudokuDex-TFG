@@ -101,6 +101,7 @@ export default function Diario() {
     const [remainingTime, setRemainingTime] = useState(120);
     const [timeOutModalVisible, setTimeOutModalVisible] = useState(false);
     const [surrenderModal, setsurrenderModal] = useState(false);
+    const [infoVisible, setInfoVisible] = useState(false);
 
     useEffect(() => {
     if (!startTime) {
@@ -383,7 +384,7 @@ export default function Diario() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Puzzle diario</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => setInfoVisible(true)} >
                     <Image source={require('../assets/images/tfg/help.png')} style={styles.infoIcon} />
                 </TouchableOpacity>
             </View>
@@ -825,6 +826,53 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal>
+              <Modal visible={infoVisible} transparent animationType="slide">
+                  <View style={{
+                      flex: 1,
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                  }}>
+                      <View style={{
+                          backgroundColor: Colors.Fondo,
+                          padding: 24,
+                          borderRadius: 20,
+                          borderColor: Colors.Tablero,
+                          borderWidth: 2,
+                          maxWidth: '80%'
+                      }}>
+                          <Text style={{
+                              fontFamily: 'Pixel',
+                              fontSize: 16,
+                              color: Colors.blanco,
+                              textAlign: 'center',
+                              marginBottom: 16
+                          }}>
+                              ¡Saludos Jugador!{'\n'}{'\n'} El modo Diario genera un nuevo tablero cada día, que puedes completar sin límite de tiempo. Es ideal para jugar con calma y mejorar tu lógica.{'\n'}¡Recuerda que puedes pulsar sobre las etiquetas del tablero para consultar información sobre posibles Pokémon que cumplan las condiciones!
+                              {'\n'}{'\n'}¡Buena suerte!
+                          </Text>
+
+                          <TouchableOpacity
+                              onPress={() => setInfoVisible(false)}
+                              style={{
+                                  backgroundColor: Colors.Botones_menu,
+                                  paddingVertical: 8,
+                                  paddingHorizontal: 20,
+                                  borderRadius: 10,
+                                  alignSelf: 'center'
+                              }}
+                          >
+                              <Text style={{
+                                  fontFamily: 'Pixel',
+                                  fontSize: 14,
+                                  color: Colors.blanco
+                              }}>
+                                  Entendido
+                              </Text>
+                          </TouchableOpacity>
+                      </View>
+                  </View>
+              </Modal>
         </View>
     );
 }

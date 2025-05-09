@@ -99,7 +99,8 @@ export default function Diario() {
     const [score, setScore] = useState(0);
     const [remainingTime, setRemainingTime] = useState(120);
     const [timeOutModalVisible, setTimeOutModalVisible] = useState(false);
-     const [surrenderModal, setsurrenderModal] = useState(false);
+    const [surrenderModal, setsurrenderModal] = useState(false);
+    const [infoVisible, setInfoVisible] = useState(false);
 
     useEffect(() => {
     if (!startTime) {
@@ -389,7 +390,7 @@ export default function Diario() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Puzzle Libre</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => setInfoVisible(true)}>
                     <Image source={require('../assets/images/tfg/help.png')} style={styles.infoIcon} />
                 </TouchableOpacity>
             </View>
@@ -888,6 +889,59 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal> 
+              <Modal visible={infoVisible} transparent animationType="slide">
+                  <View style={{
+                      flex: 1,
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                  }}>
+                      <View style={{
+                          backgroundColor: Colors.Fondo,
+                          padding: 24,
+                          borderRadius: 20,
+                          borderColor: Colors.Tablero,
+                          borderWidth: 2,
+                          maxWidth: '80%'
+                      }}>
+                          <Text style={{
+                              fontFamily: 'Pixel',
+                              fontSize: 16,
+                              color: Colors.blanco,
+                              textAlign: 'center',
+                              marginBottom: 16
+                          }}>
+                              ¡Bienvenido al Modo Libre!{'\n'}{'\n'}
+                              Este modo se trata de resolver un único tablero a contrarreloj: dispones de dos minutos y medio para completarlo.
+                              No hay vidas, pero cada error te hará perder valioso tiempo.{'\n'}
+
+                              Tu puntuación dependerá de la rapidez con la que lo completes, ¡así que da lo mejor de ti!{'\n'}
+
+                              Y recuerda: puedes pulsar sobre las etiquetas para consultar información sobre los posibles Pokémon que encajen con las condiciones. ¡Úsalo a tu favor!
+                              {'\n'}{'\n'}¡Buena suerte!
+                          </Text>
+
+                          <TouchableOpacity
+                              onPress={() => setInfoVisible(false)}
+                              style={{
+                                  backgroundColor: Colors.Botones_menu,
+                                  paddingVertical: 8,
+                                  paddingHorizontal: 20,
+                                  borderRadius: 10,
+                                  alignSelf: 'center'
+                              }}
+                          >
+                              <Text style={{
+                                  fontFamily: 'Pixel',
+                                  fontSize: 14,
+                                  color: Colors.blanco
+                              }}>
+                                  Entendido
+                              </Text>
+                          </TouchableOpacity>
+                      </View>
+                  </View>
+              </Modal>
         </View>
     );
 }

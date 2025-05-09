@@ -12,7 +12,7 @@ const buttons = [
     { label: 'Carrusel ', icon: require('../assets/images/tfg/superball.png'),screen:'carrusel' },
     { label: 'Puzzle Libre', icon: require('../assets/images/tfg/masterball.png'), screen:'libre' },
     { label: 'Pokédex ', icon: require('../assets/images/tfg/pokedex.gif'),screen:'pokedex' },
-    { label: 'Iniciar Sesión ', icon: require('../assets/images/tfg/porygon.png') },
+    { label: 'Iniciar Sesión ', icon: require('../assets/images/tfg/porygon.png'),screen:'iniciar' },
   ];
   
   export default function HomeScreen() {
@@ -52,7 +52,7 @@ const buttons = [
       backgroundColor: Colors.Fondo,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: 34,
+      padding: 30,
     },
     title: {
       fontSize: 37,

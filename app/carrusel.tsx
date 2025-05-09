@@ -103,6 +103,8 @@ export default function Diario() {
     const [surrenderModal, setsurrenderModal] = useState(false);
     const [contador, setContador] = useState(0);
     const [gameOverModalVisible, setGameOverModalVisible] = useState(false);
+    const [infoVisible, setInfoVisible] = useState(false);
+
 
 
     useEffect(() => {
@@ -417,7 +419,7 @@ export default function Diario() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Carrusel</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => setInfoVisible(true)}>
                     <Image source={require('../assets/images/tfg/help.png')} style={styles.infoIcon} />
                 </TouchableOpacity>
             </View>
@@ -980,6 +982,58 @@ export default function Diario() {
                         color: Colors.blanco
                         }}>
                         Volver al menú
+                        </Text>
+                    </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            {/*Moda Informacion */}
+            <Modal visible={infoVisible} transparent animationType="slide">
+                <View style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <View style={{
+                    backgroundColor: Colors.Fondo,
+                    padding: 24,
+                    borderRadius: 20,
+                    borderColor: Colors.Tablero,
+                    borderWidth: 2,
+                    maxWidth: '80%'
+                    }}>
+                    <Text style={{
+                        fontFamily: 'Pixel',
+                        fontSize: 16,
+                        color: Colors.blanco,
+                        textAlign: 'center',
+                        marginBottom: 16
+                    }}>
+                        ¡Saludos Jugador!{'\n'}{'\n'}
+                        El modo Carrusel consiste en rellenar el tablero en menos de dos minutos y medio. Deberás hacerlo de forma continua, hasta donde seas capaz de llegar.{'\n'}
+                        El ícono de Pikachu representa tus vidas: puedes fallar una vez, pero no recuperarás la vida perdida a menos que completes el tablero.
+                        La puntuación se va acumulando, y el contador indica cuántos tableros has superado.
+
+                        ¡Recuerda que puedes pulsar sobre las etiquetas del tablero para consultar información sobre posibles Pokémon que cumplan las condiciones!                        {'\n'}{'\n'}¡Buena suerte!
+                    </Text>
+
+                    <TouchableOpacity
+                        onPress={() => setInfoVisible(false)}
+                        style={{
+                        backgroundColor: Colors.Botones_menu,
+                        paddingVertical: 8,
+                        paddingHorizontal: 20,
+                        borderRadius: 10,
+                        alignSelf: 'center'
+                        }}
+                    >
+                        <Text style={{
+                        fontFamily: 'Pixel',
+                        fontSize: 14,
+                        color: Colors.blanco
+                        }}>
+                        Entendido
                         </Text>
                     </TouchableOpacity>
                     </View>

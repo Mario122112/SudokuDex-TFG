@@ -7,6 +7,7 @@ import Diario from './diario';
 import Libre from './libre';
 import Carrusel from './carrusel';
 import Pokedex from './pokedex';
+import Iniciar from './iniciar';
 
 export type RootStackParamList = {
   Menu: undefined;
@@ -14,6 +15,7 @@ export type RootStackParamList = {
   PuzzleLibre: undefined;
   Carrusel:undefined;
   Pokedex: undefined;
+  IniciarSesion:undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -27,6 +29,7 @@ export default function App() {
         <Stack.Screen name="PuzzleLibre" component={Libre} />
         <Stack.Screen name="Carrusel" component={Carrusel} />
         <Stack.Screen name="Pokedex" component={Pokedex}/>
+        <Stack.Screen name="IniciarSesion" component={Iniciar}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
