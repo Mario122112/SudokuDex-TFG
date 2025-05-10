@@ -16,7 +16,7 @@ type Pokemon = {
 };
 
 
-const regiones = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola', 'Galar', 'Paldea'];
+const regiones = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea'];
 const tipos: Tipo[] = ["fire", "water", "grass", "electric", "psychic", "rock", "ground", "fairy", "ghost", "dragon", "normal", "fighting", "bug", "ice", "poison", "steel", "dark", "flying"];
 const especiales = ['mega', 'gmax'];
 
@@ -56,6 +56,12 @@ const PokedexScreen = () => {
 
 
 
+  useEffect(() => {
+    if (tabActivo === 'Pokémons' && pokemons.length === 0) {
+      fetchPokemons();
+    }
+  }, [tabActivo]);
+
   const fetchPokemons = async () => {
     if (loading || !hasMore) return;
     setLoading(true);
@@ -72,19 +78,13 @@ const PokedexScreen = () => {
 
       setPokemons(prev => [...prev, ...detalles]);
       setOffset(prev => prev + 50);
-      if (offset + 50 >= 1300) setHasMore(false);
+      setHasMore(Boolean(data.next));
     } catch (error) {
       console.error('Error al cargar los pokémons', error);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (tabActivo === 'Pokémons') {
-      fetchPokemons();
-    }
-  }, [tabActivo]);
 
   const pokemonsFiltrados = valorFiltro
   ? pokemons.filter((p) => {
@@ -105,15 +105,17 @@ const PokedexScreen = () => {
         }
       } else if (tipoFiltro === 'region' && valorFiltro) {
         const nombreRegion = valorFiltro.toLowerCase();
-        if (nombreRegion === 'kanto') return p.id <= 151;
-        if (nombreRegion === 'johto') return p.id > 151 && p.id <= 251;
-        if (nombreRegion === 'hoenn') return p.id > 251 && p.id <= 386;
-        if (nombreRegion === 'sinnoh') return p.id > 386 && p.id <= 493;
-        if (nombreRegion === 'unova') return p.id > 493 && p.id <= 649;
-        if (nombreRegion === 'kalos') return p.id > 649 && p.id <= 721;
-        if (nombreRegion === 'alola') return p.id > 721 && p.id <= 809;
-        if (nombreRegion === 'galar') return p.id > 809 && p.id <= 905;
-        if (nombreRegion === 'paldea') return p.id > 905;
+
+        // Lógica para las regiones y formas regionales
+        if (nombreRegion === 'kanto') return p.id <= 151 || p.name.includes('kanto');
+        if (nombreRegion === 'johto') return (p.id > 151 && p.id <= 251);
+        if (nombreRegion === 'hoenn') return (p.id > 251 && p.id <= 386);
+        if (nombreRegion === 'sinnoh') return (p.id > 386 && p.id <= 493);
+        if (nombreRegion === 'unova') return (p.id > 493 && p.id <= 649);
+        if (nombreRegion === 'kalos') return (p.id > 649 && p.id <= 721);
+        if (nombreRegion === 'alola') return (p.id > 721 && p.id <= 809) || p.name.includes('-alola');
+        if (nombreRegion === 'galar') return (p.id > 809 && p.id <= 905) || p.name.includes('-galar') || p.name.includes('-hisui');
+        if (nombreRegion === 'paldea') return (p.id > 905 && p.id <= 1025) || p.name.includes('-paldea');
         return false;
       }
       return true;
@@ -234,15 +236,18 @@ const PokedexScreen = () => {
             {/* Sprites */}
             <FlatList
               data={pokemonsFiltrados}
-              keyExtractor={(item) => `${item.id}-${item.name}`}
+              keyExtractor={(item, index) => `${item.id}-${index}`} // Combinando ID e índice
+  // Usando solo el ID, que es único
               numColumns={5}
               contentContainerStyle={[styles.pokemonGrid]} 
-              renderItem={({ item }) => (
-                <Image
-                  source={{ uri: item.sprites.front_default }}
-                  style={styles.pokemonSprite}
-                />
-              )}
+             renderItem={({ item }) =>
+                item.sprites?.front_default ? (
+                  <Image
+                    source={{ uri: item.sprites.front_default }}
+                    style={styles.pokemonSprite}
+                  />
+                ) : null
+              }
               onEndReached={fetchPokemons}
               onEndReachedThreshold={0.5}
               ListFooterComponent={loading ? <Text style={styles.infoText}>Cargando más...</Text> : null}
