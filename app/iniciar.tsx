@@ -1,167 +1,111 @@
-import React, { useEffect, useState } from 'react';
-import {View,Text,TouchableOpacity,Image,ScrollView,StyleSheet,} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
 import { Colors } from '@/themes/Colors';
+import { useRouter } from 'expo-router';
 
-type Pokemon = {
-  id: number;
-  name: string;
-  sprites: {
-    front_default: string;
-  };
-};
 
-const PokedexScreen = () => {
-  const [tabActivo, setTabActivo] = useState<'Datos' | 'Pokémons'>('Datos');
-  const [pokemons, setPokemons] = useState<Pokemon[]>([]);
-  const [loading, setLoading] = useState(false);
+const LoginScreen = () => {
+  const [usuario, setUsuario] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const router = useRouter();
 
-  const fetchPokemons = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=20');
-      const data = await response.json();
 
-      const detalles: Pokemon[] = await Promise.all(
-        data.results.map(async (p: { url: string }) => {
-          const res = await fetch(p.url);
-          return await res.json();
-        })
-      );
-
-      setPokemons(detalles);
-    } catch (error) {
-      console.error('Error al cargar los pokémons', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleLogin = () => {
+    console.log(`Usuario: ${usuario}, Contraseña: ${contrasena}`);
   };
 
-  useEffect(() => {
-    if (tabActivo === 'Pokémons') {
-      fetchPokemons();
-    }
-  }, [tabActivo]);
+  const handleRegistro = () => {
+    router.push('/registro');
+  };  
 
   return (
+
     <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Pokédex de Usuario</Text>
+      <Text style={styles.titulo}>Iniciar Sesión</Text>
 
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          <TouchableOpacity onPress={() => setTabActivo('Datos')} style={styles.tab}>
-            <Text
-              style={[
-                styles.tabText,
-                tabActivo === 'Datos' && styles.tabTextActive,
-              ]}
-            >
-              Datos
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setTabActivo('Pokémons')} style={styles.tab}>
-            <Text
-              style={[
-                styles.tabText,
-                tabActivo === 'Pokémons' && styles.tabTextActive,
-              ]}
-            >
-              Pokémons
-            </Text>
-          </TouchableOpacity>
-        </View>
+      <TextInput
+        style={[styles.input,{marginTop:20}]}
+        placeholder="Nombre Usuario"
+        placeholderTextColor= {Colors.blanco}
+        onChangeText={setUsuario}
+        value={usuario}
+      />
 
-        {/* Contenido */}
-        {tabActivo === 'Datos' ? (
-          <View>
-            <Text style={styles.infoText}>Tableros jugados: 12</Text>
-            <Text style={styles.infoText}>Racha Carrusel: 6</Text>
-            <Text style={styles.infoText}>Máxima Puntuación: 1438</Text>
-          </View>
-        ) : (
-          <ScrollView style={styles.scroll}>
-            {loading ? (
-              <Text style={styles.infoText}>Cargando...</Text>
-            ) : (
-              pokemons.map((pokemon) => (
-                <View key={pokemon.id} style={styles.pokemonCard}>
-                  <Image
-                    source={{ uri: pokemon.sprites.front_default }}
-                    style={styles.pokemonImage}
-                  />
-                  <Text style={styles.pokemonName}>
-                    {pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
-                  </Text>
-                </View>
-              ))
-            )}
-          </ScrollView>
-        )}
-      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        placeholderTextColor={Colors.blanco}
+        secureTextEntry
+        onChangeText={setContrasena}
+        value={contrasena}
+      />
+
+      <TouchableOpacity style={[styles.botonPrincipal,{marginBottom:55}]} onPress={handleLogin}>
+        <Text style={styles.textoBoton}>Confirmar</Text>
+      </TouchableOpacity>
+
+
+      <Text style={[styles.textoSecundario,{marginBottom:20,textAlign:'center'}]}>¿Aun no tienes cuenta?{'\n'}{'\n'} ¡Registrate ahora para guardar tu progeso!</Text>
+      <TouchableOpacity style={[styles.botonSecundario]} onPress={handleRegistro}>
+        <Text style={styles.textoSecundario}>Registrarse</Text>
+      </TouchableOpacity>
+
+      
     </View>
   );
 };
 
-export default PokedexScreen;
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: Colors.Fondo,
-    padding: 16,
-  },
-  card: {
-    backgroundColor: Colors.Fondo,
     padding: 20,
-  },
-  title: {
-    fontFamily: 'Pixel',
-    fontSize: 18,
-    color: Colors.blanco,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  tab: {
-    marginHorizontal: 16,
-  },
-  tabText: {
-    fontFamily: 'Pixel',
-    fontSize: 16,
-    color: Colors.blanco,
-  },
-  tabTextActive: {
-    color: Colors.blanco,
-    textDecorationLine: 'underline',
-  },
-  infoText: {
-    color: Colors.blanco,
-    fontFamily: 'Pixel',
-    marginBottom: 8,
-  },
-  scroll: {
-    maxHeight: 300,
-  },
-  pokemonCard: {
-    flexDirection: 'row',
+    width: '100%',
+    height:'100%',
     alignItems: 'center',
-    backgroundColor: Colors.Botones,
-    borderRadius: 10,
-    padding: 8,
-    marginBottom: 10,
+    backgroundColor: Colors.Fondo
   },
-  pokemonImage: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
-  },
-  pokemonName: {
-    fontFamily: 'Pixel',
+  titulo: {
+    marginTop:50,
+    fontSize: 30,
     color: Colors.blanco,
-    fontSize: 14,
+    marginBottom: 80,
+    fontFamily:'Pixel'
+  },
+  input: {
+    backgroundColor: Colors.Botones_menu,
+    width: '85%',
+    borderRadius: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    marginBottom: 55,
+    color: Colors.blanco,
+    textAlign: 'left',
+    fontSize: 24,
+    fontFamily:'Pixel'
+  },
+  botonSecundario: {
+    marginBottom: 35,
+    backgroundColor: Colors.Botones_menu,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    alignItems:'center'
+  },
+  textoSecundario: {
+    color: Colors.blanco,
+    fontSize: 20,
+    fontFamily:'Pixel'
+  },
+  botonPrincipal: {
+    backgroundColor: Colors.Botones_menu,
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 20,
+  },
+  textoBoton: {
+    color: Colors.blanco,
+    fontSize: 20,
+    fontFamily:'Pixel'
   },
 });
+
+export default LoginScreen;

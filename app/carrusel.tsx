@@ -90,9 +90,7 @@ export default function Diario() {
     const [errorModal, setErrorModal] = useState({ visible: false, message: '' });
     const [allPokemonNames, setAllPokemonNames] = useState<string[]>([]);
     const [pokemonSprites, setPokemonSprites] = useState<{ [name: string]: string }>({});
-    const [board, setBoard] = useState(
-        Array(3).fill(null).map(() => Array(3).fill(null))
-    );
+    const [board, setBoard] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
     const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea','Hisui'];
     const [startTime, setStartTime] = useState<Date | null>(null);
     const [score, setScore] = useState(0);
@@ -104,8 +102,6 @@ export default function Diario() {
     const [contador, setContador] = useState(0);
     const [gameOverModalVisible, setGameOverModalVisible] = useState(false);
     const [infoVisible, setInfoVisible] = useState(false);
-
-
 
     useEffect(() => {
     if (!startTime) {

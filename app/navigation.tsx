@@ -8,6 +8,7 @@ import Libre from './libre';
 import Carrusel from './carrusel';
 import Pokedex from './pokedex';
 import Iniciar from './iniciar';
+import Registro from './registro';
 
 export type RootStackParamList = {
   Menu: undefined;
@@ -16,6 +17,7 @@ export type RootStackParamList = {
   Carrusel:undefined;
   Pokedex: undefined;
   IniciarSesion:undefined;
+  Registrarse:undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -30,6 +32,7 @@ export default function App() {
         <Stack.Screen name="Carrusel" component={Carrusel} />
         <Stack.Screen name="Pokedex" component={Pokedex}/>
         <Stack.Screen name="IniciarSesion" component={Iniciar}/>
+        <Stack.Screen name="Registrarse" component={Registro}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
