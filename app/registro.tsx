@@ -36,6 +36,13 @@ const RegistroScreen = () => {
       />
       <TextInput
         style={styles.input}
+        placeholder="Corre electronico"
+        placeholderTextColor={Colors.blanco}
+        onChangeText={setUsuario}
+        value={usuario}
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Contraseña"
         placeholderTextColor={Colors.blanco}
         secureTextEntry
