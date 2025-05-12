@@ -2,26 +2,48 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useRouter } from 'expo-router';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/FireBaseconfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const RegistroScreen = () => {
   const [usuario, setUsuario] = useState('');
   const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [confirmar, setConfirmar] = useState('');
   const router = useRouter();
 
-  const handleRegistro = () => {
-    if (contrasena !== confirmar) {
-      alert('Las contraseñas no coinciden');
+  const handleRegister = async () => {
+    if (!email || !contrasena || !confirmar || contrasena !== confirmar) {
+      alert("Por favor, completa todos los campos correctamente.");
       return;
     }
-    console.log(`Registrado: ${usuario}, ${nombre}`);
-    
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, contrasena);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, "Usuarios", user.uid), {
+        email: user.email,
+        nombre: nombre,
+        rachaDiaria: 0,
+        rachaCarrusel: 0,
+        puntuacionMax: 0,
+        puntuacionMaxDiario: 0,
+        puntuacionMaxCarrusel: 0,
+        puntuacionMaxLibre:0,
+        tablerosJugados: 0,
+        pokemonDesbloqueados: [],
+      });
+
+      router.replace('/');
+    } catch (error) {
+      console.error("Error registrando:", error);
+      alert("Hubo un problema al registrar el usuario.");
+    }
   };
 
-   const handleVolverAlMenu = () => {
-    router.push('/');  // Redirige al Menú, que está en la ruta raíz '/'
-  };
 
   return (
     <View style={styles.container}>
@@ -31,15 +53,15 @@ const RegistroScreen = () => {
         style={styles.input}
         placeholder="Nombre de usuario"
         placeholderTextColor={Colors.blanco}
-        onChangeText={setUsuario}
-        value={usuario}
+        onChangeText={setNombre}
+        value={nombre}
       />
       <TextInput
         style={styles.input}
-        placeholder="Corre electronico"
+        placeholder="Correo electrónico"
         placeholderTextColor={Colors.blanco}
-        onChangeText={setUsuario}
-        value={usuario}
+        onChangeText={setEmail}
+        value={email}
       />
       <TextInput
         style={styles.input}
@@ -58,7 +80,7 @@ const RegistroScreen = () => {
         value={confirmar}
       />
 
-      <TouchableOpacity style={styles.botonPrincipal} onPress={handleVolverAlMenu}>
+      <TouchableOpacity style={styles.botonPrincipal} onPress={handleRegister}>
         <Text style={styles.textoBoton}>Registrarse</Text>
       </TouchableOpacity>
     </View>

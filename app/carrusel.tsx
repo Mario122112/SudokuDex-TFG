@@ -3,6 +3,10 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, Flat
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
+import { getDoc, doc, updateDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { db } from '@/FireBaseconfig';
+import { Double } from 'react-native/Libraries/Types/CodegenTypes';
 
 
 const tiposCombinables: { [key:string]: string[] } = {
@@ -150,7 +154,39 @@ export default function Diario() {
               setLeftLabels(nuevas.left);
               }
     };
-      
+
+    const actualizarCarruselYPuntaje = async (nuevaPuntuacion: Double) => {
+        const user = getAuth().currentUser;
+
+        if (!user) {
+            console.warn("No hay usuario logueado.");
+            return;
+        }
+
+        const docRef = doc(db, "Usuarios", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const datos = docSnap.data();
+
+            const puntajeAnterior = datos.puntajeMaximoCarrusel || 0;
+            const tablerosCompletados = datos.tablerosCarrusel || 0;
+
+            const nuevasActualizaciones: any = {
+                tablerosCarrusel: tablerosCompletados + 1,
+            };
+
+            if (nuevaPuntuacion > puntajeAnterior) {
+                nuevasActualizaciones.puntajeMaximoCarrusel = nuevaPuntuacion;
+            }
+
+            await updateDoc(docRef, nuevasActualizaciones);
+            console.log("Puntaje y estadísticas actualizadas correctamente.");
+        } else {
+            console.warn("El documento del usuario no existe.");
+        }
+    };
+
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
@@ -391,6 +427,7 @@ export default function Diario() {
       
         if (isBoardComplete()) {
             setBoardCompletedModalVisible(true);
+            actualizarCarruselYPuntaje(totalPoints)
         }
       
         const sprite = pokemon.sprites.front_default;

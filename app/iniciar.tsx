@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useRouter } from 'expo-router';
+import { auth, db } from '@/FireBaseconfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+
 
 
 const LoginScreen = () => {
@@ -10,9 +14,29 @@ const LoginScreen = () => {
   const router = useRouter();
 
 
-  const handleLogin = () => {
-    console.log(`Usuario: ${usuario}, Contraseña: ${contrasena}`);
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, usuario, contrasena);
+      const user = userCredential.user;
+
+      // Buscar datos en Firestore
+      const docRef = doc(db, "Usuarios", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const datosUsuario = docSnap.data();
+        console.log("Datos del usuario:", datosUsuario);
+
+        router.push('/');
+      } else {
+        console.log("No se encontró el documento del usuario");
+      }
+    } catch (error: any) {
+      console.error("Error iniciando sesión:", error.message);
+      // Aquí puedes mostrar un mensaje de error en pantalla si quieres
+    }
   };
+
 
   const handleRegistro = () => {
     router.push('/registro');
@@ -25,7 +49,7 @@ const LoginScreen = () => {
 
       <TextInput
         style={[styles.input,{marginTop:20}]}
-        placeholder="Nombre Usuario"
+        placeholder="Correo electrónico"
         placeholderTextColor= {Colors.blanco}
         onChangeText={setUsuario}
         value={usuario}

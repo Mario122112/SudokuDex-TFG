@@ -4,6 +4,9 @@ import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import seedrandom from 'seedrandom';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '@/FireBaseconfig';
+import { getAuth } from 'firebase/auth';
 
 
 const tiposCombinables: { [key:string]: string[] } = {
@@ -102,6 +105,9 @@ export default function Diario() {
     const [timeOutModalVisible, setTimeOutModalVisible] = useState(false);
     const [surrenderModal, setsurrenderModal] = useState(false);
     const [infoVisible, setInfoVisible] = useState(false);
+    const auth = getAuth();
+    const usuario = auth.currentUser;
+    const uid = usuario?.uid;
 
     useEffect(() => {
     if (!startTime) {
@@ -128,7 +134,75 @@ export default function Diario() {
           setTimeOutModalVisible(true);
         }
     }, [remainingTime]);
-      
+
+    const handleTableroCompletado = async () => {
+        const user = getAuth().currentUser;
+
+        if (user?.uid) {
+            const docRef = doc(db, "Usuarios", user.uid);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const datos = docSnap.data();
+                const rachaAnterior = datos.rachaDiaria || 0;
+
+                await updateDoc(docRef, {
+                    rachaDiaria: rachaAnterior + 1,
+                    // otros campos si los necesitas
+                });
+
+                console.log("Racha actualizada correctamente.");
+            } else {
+                console.warn("No se encontró el documento del usuario.");
+            }
+        } else {
+            console.warn("No hay usuario logueado. No se puede actualizar la racha.");
+        }
+    };
+
+    const actualizarRachaDiaria = async (uid: string) => {
+        try {
+            const docRef = doc(db, "usuarios", uid);
+            const userSnap = await getDoc(docRef);
+
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                const fechaUltima = data.fechaUltimoPuzzle;  // string o timestamp
+                const rachaActual = data.rachaDiaria || 0;
+
+                const hoy = new Date();
+                const hoyStr = hoy.toISOString().split('T')[0];
+
+                let nuevaRacha = 1;
+
+                if (fechaUltima) {
+                    const ultima = new Date(fechaUltima);
+                    const ayer = new Date();
+                    ayer.setDate(hoy.getDate() - 1);
+
+                    const ultimaStr = ultima.toISOString().split('T')[0];
+                    const ayerStr = ayer.toISOString().split('T')[0];
+
+                    if (ultimaStr === hoyStr) {
+                        console.log("Ya se ha jugado hoy. No se actualiza la racha.");
+                        return;
+                    } else if (ultimaStr === ayerStr) {
+                        nuevaRacha = rachaActual + 1;
+                    }
+                }
+
+                await updateDoc(docRef, {
+                    rachaDiaria: nuevaRacha,
+                    fechaUltimoPuzzle: hoyStr,
+                });
+
+                console.log("Racha diaria actualizada correctamente:", nuevaRacha);
+            }
+        } catch (error) {
+            console.error("Error actualizando racha diaria:", error);
+        }
+    };
+
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
@@ -360,6 +434,8 @@ export default function Diario() {
       
         if (isBoardComplete()) {
           setVictoryModalVisible(true);
+          await actualizarRachaDiaria(usuario?.uid!)
+          await handleTableroCompletado()
         }
       
         const sprite = pokemon.sprites.front_default;
