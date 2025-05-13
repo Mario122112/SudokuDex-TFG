@@ -155,37 +155,39 @@ export default function Diario() {
               }
     };
 
-    const actualizarCarruselYPuntaje = async (nuevaPuntuacion: Double) => {
+    const actualizarRecordCarrusel = async (tablerosCompletados: number, puntuacionFinal: number) => {
         const user = getAuth().currentUser;
+        if (!user?.uid) return console.warn("No hay usuario logueado.");
 
-        if (!user) {
-            console.warn("No hay usuario logueado.");
+        const docRef = doc(db, "Usuarios", user.uid);
+        const snapshot = await getDoc(docRef);
+
+        if (!snapshot.exists()) {
+            console.warn("El documento del usuario no existe.");
             return;
         }
 
-        const docRef = doc(db, "Usuarios", user.uid);
-        const docSnap = await getDoc(docRef);
+        const data = snapshot.data();
+        const recordAnterior = data.rachaCarrusel;
+        const puntuacionMaxima = data.puntuacionMaxCarrusel;
 
-        if (docSnap.exists()) {
-            const datos = docSnap.data();
+        const updates: any = {};
+        if (tablerosCompletados > recordAnterior) {
+            updates.rachaCarrusel = tablerosCompletados;
+        }
 
-            const puntajeAnterior = datos.puntajeMaximoCarrusel || 0;
-            const tablerosCompletados = datos.tablerosCarrusel || 0;
+        if (puntuacionFinal > puntuacionMaxima) {
+            updates.puntuacionMaxCarrusel = puntuacionFinal;
+        }
 
-            const nuevasActualizaciones: any = {
-                tablerosCarrusel: tablerosCompletados + 1,
-            };
-
-            if (nuevaPuntuacion > puntajeAnterior) {
-                nuevasActualizaciones.puntajeMaximoCarrusel = nuevaPuntuacion;
-            }
-
-            await updateDoc(docRef, nuevasActualizaciones);
-            console.log("Puntaje y estadísticas actualizadas correctamente.");
+        if (Object.keys(updates).length > 0) {
+            await updateDoc(docRef, updates);
+            console.log("Datos actualizados correctamente:", updates);
         } else {
-            console.warn("El documento del usuario no existe.");
+            console.log("No hay récords que superar.");
         }
     };
+
 
 
     const abrirInfo = (etiqueta: string) => {
@@ -307,8 +309,6 @@ export default function Diario() {
           'Paldea': '-paldea',
         };
       
-        const sufijosMega: string[] = ['-mega', '-gmax'];
-      
         const formatLabel = (label: string) =>
           label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
       
@@ -380,7 +380,7 @@ export default function Diario() {
               // Si solo hay un tipo (porque la otra etiqueta es región u otra cosa), vale con que tenga uno
               valido = cumpleConTipos(tiposPokemon);
             }
-          }
+        }
       
         // Validaciones extra por forma
         if (esFormaMega && !nombrePokemon.includes('-mega')) {
@@ -419,7 +419,8 @@ export default function Diario() {
         const extraPoints = Math.floor(timeMultiplier * 100);
 
         const totalPoints = basePoints + extraPoints;
-        setScore(prev => prev + totalPoints);
+        const newScore = score + totalPoints;
+        setScore(newScore);
       
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
@@ -427,7 +428,10 @@ export default function Diario() {
       
         if (isBoardComplete()) {
             setBoardCompletedModalVisible(true);
-            actualizarCarruselYPuntaje(totalPoints)
+            const nuevoContador = contador + 1;
+            setContador(nuevoContador);
+            actualizarRecordCarrusel(nuevoContador, newScore);
+
         }
       
         const sprite = pokemon.sprites.front_default;
@@ -595,7 +599,6 @@ export default function Diario() {
                         {/* Celdas del tablero */}
                         {Array.from({ length: 3 }).map((_, colIdx) => {
                             const index = rowIdx * 3 + colIdx;
-                            const isOccupied = !!sprites[index];
 
                             return (
                                 <TouchableOpacity
@@ -949,7 +952,6 @@ export default function Diario() {
                         if (lives < 2) {
                             setLives(2);
                         }
-                        setContador(contador + 1);
                         }}
                         style={{
                         backgroundColor: Colors.Botones_menu,

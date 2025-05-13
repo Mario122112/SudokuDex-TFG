@@ -52,7 +52,7 @@ const buttons = [
       backgroundColor: Colors.Fondo,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: 30,
+      padding: 31,
     },
     title: {
       fontSize: 37,

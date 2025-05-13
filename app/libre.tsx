@@ -323,7 +323,13 @@ export default function Diario() {
           }
         } else {
           // Casillas normales (ni Mega ni Gmax)
-          valido = cumpleConTipos(tiposPokemon);
+            if (tipoFila && tipoColumna && tipoFila !== tipoColumna) {
+              // Si ambos son tipos distintos, debe tener AMBOS
+              valido = tiposPokemon.includes(tipoFila) && tiposPokemon.includes(tipoColumna);
+            } else {
+              // Si solo hay un tipo (porque la otra etiqueta es región u otra cosa), vale con que tenga uno
+              valido = cumpleConTipos(tiposPokemon);
+            }
         }
       
         // Validaciones extra por forma
