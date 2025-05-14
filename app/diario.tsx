@@ -135,45 +135,22 @@ export default function Diario() {
         }
     }, [remainingTime]);
 
-    const handleTableroCompletado = async () => {
-        const user = getAuth().currentUser;
 
-        if (user?.uid) {
-            const docRef = doc(db, "Usuarios", user.uid);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const datos = docSnap.data();
-                const rachaAnterior = datos.rachaDiaria || 0;
-
-                await updateDoc(docRef, {
-                    rachaDiaria: rachaAnterior + 1,
-                    // otros campos si los necesitas
-                });
-
-                console.log("Racha actualizada correctamente.");
-            } else {
-                console.warn("No se encontró el documento del usuario.");
-            }
-        } else {
-            console.warn("No hay usuario logueado. No se puede actualizar la racha.");
-        }
-    };
-
-    const actualizarRachaDiaria = async (uid: string) => {
+    const actualizarRachaDiaria = async (uid: string, puntuacionFinal: number) => {
+        const docRef = doc(db, "Usuarios", uid);
         try {
-            const docRef = doc(db, "usuarios", uid);
             const userSnap = await getDoc(docRef);
 
             if (userSnap.exists()) {
                 const data = userSnap.data();
-                const fechaUltima = data.fechaUltimoPuzzle;  // string o timestamp
-                const rachaActual = data.rachaDiaria || 0;
+                const fechaUltima = data.fechaUltimoPuzzle;
+                const rachaActual = data.rachaDiaria ?? 0;
+                const puntuacionMax = typeof data.puntuacionMaxDiario === "number" ? data.puntuacionMaxDiario : -1;
 
                 const hoy = new Date();
                 const hoyStr = hoy.toISOString().split('T')[0];
 
-                let nuevaRacha = 1;
+                let nuevaRacha = rachaActual;
 
                 if (fechaUltima) {
                     const ultima = new Date(fechaUltima);
@@ -185,21 +162,34 @@ export default function Diario() {
 
                     if (ultimaStr === hoyStr) {
                         console.log("Ya se ha jugado hoy. No se actualiza la racha.");
-                        return;
+                        // No cambiamos la racha, solo actualizamos la puntuación si es mayor
                     } else if (ultimaStr === ayerStr) {
                         nuevaRacha = rachaActual + 1;
                     }
                 }
 
-                await updateDoc(docRef, {
-                    rachaDiaria: nuevaRacha,
+                const updates: any = {
                     fechaUltimoPuzzle: hoyStr,
-                });
+                };
 
-                console.log("Racha diaria actualizada correctamente:", nuevaRacha);
+                // Solo actualizamos la puntuación si la nueva es mayor
+                if (puntuacionFinal > puntuacionMax) {
+                    updates.puntuacionMaxDiario = puntuacionFinal;
+                    console.log("Nueva puntuación máxima guardada:", puntuacionFinal);
+                } else {
+                    console.log("La puntuación final no supera la anterior.");
+                }
+
+                if (nuevaRacha !== rachaActual) {
+                    updates.rachaDiaria = nuevaRacha;
+                }
+
+                await updateDoc(docRef, updates);
+
+                console.log("Actualización completada:", updates);
             }
         } catch (error) {
-            console.error("Error actualizando racha diaria:", error);
+            console.error("Error actualizando racha diaria y puntuación:", error);
         }
     };
 
@@ -432,7 +422,8 @@ export default function Diario() {
         const extraPoints = Math.floor(timeMultiplier * 100);
 
         const totalPoints = basePoints + extraPoints;
-        setScore(prev => prev + totalPoints);
+        const puntuacionFinal = score + totalPoints;
+        setScore(puntuacionFinal);
       
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
@@ -440,8 +431,7 @@ export default function Diario() {
       
         if (isBoardComplete()) {
           setVictoryModalVisible(true);
-          await actualizarRachaDiaria(usuario?.uid!)
-          await handleTableroCompletado()
+          await actualizarRachaDiaria(usuario?.uid!,puntuacionFinal)
         }
       
         const sprite = pokemon.sprites.front_default;
