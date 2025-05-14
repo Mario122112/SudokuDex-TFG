@@ -1,42 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator, Alert, RootTagContext,ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator, Alert, RootTagContext, ImageBackground } from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '@/FireBaseconfig';
 
 
-const tiposCombinables: { [key:string]: string[] } = {
-    'fuego': ['planta', 'bicho', 'hielo','dragon','electrico','lucha','fantasma','tierra','normal','volador','veneno','psiquico','roca','agua','siniestro','acero'],
-    'agua': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','lucha','siniestro','acero','hada'],
-    'planta': ['bicho','dragon','electrico','lucha','fuego','fantasma','hielo','normal','volador','veneno','psiquico','roca','agua','siniestro','acero','hada'],
-    'bicho': ['electrico', 'lucha','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','roca','agua','siniestro','acero','hada'],
-    'hielo': ['agua', 'planta','bicho','dragon','electrico','lucha','fuego','fantasma','tierra','volador','psiquico','roca','siniestro','acero','hada'],
-    'tierra': ['bicho','dragon','electrico','lucha','fuego','fantasma','planta','hielo','normal','volador','veneno','psiquico','roca','agua','siniestro','acero'],
-    'roca': ['bicho','dragon','electrico','fuego','lucha','planta','tierra','hielo','volador','veneno','psiquico','agua','siniestro','acero','hada'],
-    'acero': ['lucha','roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','agua','siniestro','hada'],
-    'dragon': ['electrico','lucha','fuego','fantasma','planta','tierra','hielo','normal','volador','veneno','psiquico','roca','agua','siniestro','acero','hada'],
-    'hada': ['normal', 'roca','bicho','dragon','electrico','fantasma','planta','hielo','volador','veneno','psiquico','agua','siniestro','acero','lucha'],
-    'lucha': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','agua','siniestro','acero','hada'],
-    'normal': ['electrico','lucha','fuego','fantasma','planta','tierra','volador','veneno','psiquico','agua','siniestro','hada'],
-    'veneno': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','volador','lucha','psiquico','agua','siniestro','acero','hada'],
-    'psiquico': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-    'siniestro': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','psiquico','agua','lucha','acero','hada'],
-    'volador': ['bicho','dragon','electrico','lucha','fuego','fantasma','planta','tierra','hielo','normal','veneno','psiquico','roca','agua','siniestro','acero','hada'],
-    'fantasma':['bicho','dragon','electrico','lucha','fuego','planta','tierra','hielo','normal','volador','veneno','psiquico','agua','siniestro','acero','hada'],
-    'electrico':['bicho','dragon','lucha','fuego','fantasma','planta','tierra','hielo','normal','volador','veneno','psiquico','roca','agua','siniestro','acero','hada']
+const tiposCombinables: { [key: string]: string[] } = {
+    'fuego': ['planta', 'bicho', 'hielo', 'dragon', 'electrico', 'lucha', 'fantasma', 'tierra', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero'],
+    'agua': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'lucha', 'siniestro', 'acero', 'hada'],
+    'planta': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
+    'bicho': ['electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
+    'hielo': ['agua', 'planta', 'bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'tierra', 'volador', 'psiquico', 'roca', 'siniestro', 'acero', 'hada'],
+    'tierra': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero'],
+    'roca': ['bicho', 'dragon', 'electrico', 'fuego', 'lucha', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
+    'acero': ['lucha', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'hada'],
+    'dragon': ['electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
+    'hada': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fantasma', 'planta', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'lucha'],
+    'lucha': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
+    'normal': ['electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'hada'],
+    'veneno': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'volador', 'lucha', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
+    'psiquico': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
+    'siniestro': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'lucha', 'acero', 'hada'],
+    'volador': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'normal', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
+    'fantasma': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'planta', 'tierra', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
+    'electrico': ['bicho', 'dragon', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada']
 };
 
-const regionesPosibles: { [key:string]: string[] } = {
-    'Kanto': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','acero'],
-    'Johto': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
-    'Hoenn': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
-    'Sinnoh': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
-    'Teselia': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero'],
-    'Kalos': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-    'Alola': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-    'Galar': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-    'Paldea': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada'],
-    'Hisui': ['normal', 'roca','bicho','dragon','electrico','fuego','fantasma','planta','tierra','hielo','volador','veneno','lucha','agua','siniestro','acero','hada']
+const regionesPosibles: { [key: string]: string[] } = {
+    'Kanto': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'acero'],
+    'Johto': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
+    'Hoenn': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
+    'Sinnoh': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
+    'Teselia': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
+    'Kalos': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
+    'Alola': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
+    'Galar': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
+    'Paldea': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
+    'Hisui': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada']
 };
 
 const typeStyles: Record<string, { backgroundColor: string; color: string }> = {
@@ -58,24 +60,26 @@ const typeStyles: Record<string, { backgroundColor: string; color: string }> = {
     acero: { backgroundColor: '#B8B8D0', color: '#000' },
     hada: { backgroundColor: '#EE99AC', color: '#000' },
     normal: { backgroundColor: '#A8A878', color: '#000' },
-    'g-max':{backgroundColor: '#920C2C',color:'#fff'},
-  };
+    'g-max': { backgroundColor: '#920C2C', color: '#fff' },
+};
 
-  const inicializaTableroVacio = () => {
+const inicializaTableroVacio = () => {
     return Array(3).fill(null).map(() => Array(3).fill(null));
-  };
+};
 
-  const getBallImage = (score: number) => {
+const getBallImage = (score: number) => {
     if (score >= 1000) {
-      return require('../assets/images/tfg/masterball.png');
+        return require('../assets/images/tfg/masterball.png');
     } else if (score >= 700) {
-      return require('../assets/images/tfg/ultraball.png');
+        return require('../assets/images/tfg/ultraball.png');
     } else if (score >= 400) {
-      return require('../assets/images/tfg/superball.png');
+        return require('../assets/images/tfg/superball.png');
     } else {
-      return require('../assets/images/tfg/pokeball.png');
+        return require('../assets/images/tfg/pokeball.png');
     }
-  };
+};
+
+
 
 export default function Diario() {
     const navigation = useNavigation();
@@ -94,99 +98,133 @@ export default function Diario() {
     const [board, setBoard] = useState(
         Array(3).fill(null).map(() => Array(3).fill(null))
     );
-    const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea','Hisui'];
+    const regions = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea', 'Hisui'];
     const [startTime, setStartTime] = useState<Date | null>(null);
     const [score, setScore] = useState(0);
     const [remainingTime, setRemainingTime] = useState(120);
     const [timeOutModalVisible, setTimeOutModalVisible] = useState(false);
     const [surrenderModal, setsurrenderModal] = useState(false);
     const [infoVisible, setInfoVisible] = useState(false);
+    const usuario = auth.currentUser;
 
     useEffect(() => {
-    if (!startTime) {
-        setStartTime(new Date());
-    }
+        if (!startTime) {
+            setStartTime(new Date());
+        }
     }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
-          setRemainingTime(prev => {
-            if (prev <= 0) {
-              clearInterval(interval);
-              return 0;
-            }
-            return prev - 1;
-          });
+            setRemainingTime(prev => {
+                if (prev <= 0) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
-      
+
         return () => clearInterval(interval); // Limpiar al desmontar
     }, []);
 
-      useEffect(() => {
+    useEffect(() => {
         if (remainingTime <= 0) {
-          setTimeOutModalVisible(true);
+            setTimeOutModalVisible(true);
         }
     }, [remainingTime]);
-      
 
-      const formatTime = (seconds: number) => {
+
+    const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-      };
-      
+    };
+
+
+    const actualizarModoLibre = async (uid: string, puntuacionFinal: number) => {
+        try {
+            const docRef = doc(db, "Usuarios", uid);
+            const userSnap = await getDoc(docRef);
+
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                const puntuacionMaxLibre = data.puntuacionMaxLibre;
+                const puntuacionMaxGeneral = data.puntuacionMax;
+                const tablerosJugados = data.tablerosJugados;
+
+                const updates: any = {
+                    tablerosJugados: tablerosJugados + 1
+                };
+
+                if (puntuacionFinal > puntuacionMaxLibre) {
+                    updates.puntuacionMaxLibre = puntuacionFinal;
+                    console.log("Puntuación máxima libre actualizada:", puntuacionFinal);
+                }
+
+                if (puntuacionFinal > puntuacionMaxGeneral) {
+                    updates.puntuacionMax = puntuacionFinal;
+                    console.log("Puntuación máxima general actualizada:", puntuacionFinal);
+                }
+
+                await updateDoc(docRef, updates);
+                console.log("Actualización completa:", updates);
+            }
+        } catch (error) {
+            console.error("Error actualizando puntuación del modo libre:", error);
+        }
+    };
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
         const nombre = etiqueta.toLowerCase();
-      
+
         // Puedes personalizar cada ruta
         const urls: Record<string, string> = {
-          // Tipos
-          fuego: 'https://bulbapedia.bulbagarden.net/wiki/Fire_(type)',
-          agua: 'https://bulbapedia.bulbagarden.net/wiki/Water_(type)',
-          planta: 'https://bulbapedia.bulbagarden.net/wiki/Grass_(type)',
-          volador: 'https://bulbapedia.bulbagarden.net/wiki/Flying_(type)',
-          normal: 'https://bulbapedia.bulbagarden.net/wiki/Normal_(type)',
-          lucha: 'https://bulbapedia.bulbagarden.net/wiki/Fighting_(type)',
-          veneno: 'https://bulbapedia.bulbagarden.net/wiki/Poison_(type)',
-          electrico: 'https://bulbapedia.bulbagarden.net/wiki/Electric_(type)',
-          tierra: 'https://bulbapedia.bulbagarden.net/wiki/Ground_(type)',
-          psiquico:'https://bulbapedia.bulbagarden.net/wiki/Psychic_(type)',
-          roca:'https://bulbapedia.bulbagarden.net/wiki/Rock_(type)',
-          hielo:'https://bulbapedia.bulbagarden.net/wiki/Ice_(type)',
-          bicho:'https://bulbapedia.bulbagarden.net/wiki/Bug_(type)',
-          dragon:'https://bulbapedia.bulbagarden.net/wiki/Dragon_(type)',
-          fantasma:'https://bulbapedia.bulbagarden.net/wiki/Ghost_(type)',
-          siniestro:'https://bulbapedia.bulbagarden.net/wiki/Dark_(type)',
-          acero:'https://bulbapedia.bulbagarden.net/wiki/Steel_(type)',
-          hada:'https://bulbapedia.bulbagarden.net/wiki/Fairy_(type)',
+            // Tipos
+            fuego: 'https://bulbapedia.bulbagarden.net/wiki/Fire_(type)',
+            agua: 'https://bulbapedia.bulbagarden.net/wiki/Water_(type)',
+            planta: 'https://bulbapedia.bulbagarden.net/wiki/Grass_(type)',
+            volador: 'https://bulbapedia.bulbagarden.net/wiki/Flying_(type)',
+            normal: 'https://bulbapedia.bulbagarden.net/wiki/Normal_(type)',
+            lucha: 'https://bulbapedia.bulbagarden.net/wiki/Fighting_(type)',
+            veneno: 'https://bulbapedia.bulbagarden.net/wiki/Poison_(type)',
+            electrico: 'https://bulbapedia.bulbagarden.net/wiki/Electric_(type)',
+            tierra: 'https://bulbapedia.bulbagarden.net/wiki/Ground_(type)',
+            psiquico: 'https://bulbapedia.bulbagarden.net/wiki/Psychic_(type)',
+            roca: 'https://bulbapedia.bulbagarden.net/wiki/Rock_(type)',
+            hielo: 'https://bulbapedia.bulbagarden.net/wiki/Ice_(type)',
+            bicho: 'https://bulbapedia.bulbagarden.net/wiki/Bug_(type)',
+            dragon: 'https://bulbapedia.bulbagarden.net/wiki/Dragon_(type)',
+            fantasma: 'https://bulbapedia.bulbagarden.net/wiki/Ghost_(type)',
+            siniestro: 'https://bulbapedia.bulbagarden.net/wiki/Dark_(type)',
+            acero: 'https://bulbapedia.bulbagarden.net/wiki/Steel_(type)',
+            hada: 'https://bulbapedia.bulbagarden.net/wiki/Fairy_(type)',
 
-          // Regiones
-          kanto: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Kanto_Pokédex_number',
-          johto: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Johto_Pokédex_number',
-          hoen: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Hoenn_Pokédex_number_in_Generation_VI',
-          sinnoh: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Sinnoh_Pokédex_number',
-          teselia: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Unova_Pokédex_number_in_Pokémon_Black_2_and_White_2',
-          kalos: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Kalos_Pokédex_number',
-          alola: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Alola_Pokédex_number_in_Pokémon_Ultra_Sun_and_Ultra_Moon',
-          galar: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Galar_Pokédex_number',
-          paldea: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Paldea_Pokédex_number',
-          hisui: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Hisui_Pokédex_number',
+            // Regiones
+            kanto: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Kanto_Pokédex_number',
+            johto: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Johto_Pokédex_number',
+            hoen: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Hoenn_Pokédex_number_in_Generation_VI',
+            sinnoh: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Sinnoh_Pokédex_number',
+            teselia: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Unova_Pokédex_number_in_Pokémon_Black_2_and_White_2',
+            kalos: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Kalos_Pokédex_number',
+            alola: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Alola_Pokédex_number_in_Pokémon_Ultra_Sun_and_Ultra_Moon',
+            galar: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Galar_Pokédex_number',
+            paldea: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Paldea_Pokédex_number',
+            hisui: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Hisui_Pokédex_number',
 
-          //especiales
-          mega: 'https://bulbapedia.bulbagarden.net/wiki/Mega_Evolution',
-          'g-max': 'https://bulbapedia.bulbagarden.net/wiki/Gigantamax'
+            //especiales
+            mega: 'https://bulbapedia.bulbagarden.net/wiki/Mega_Evolution',
+            'g-max': 'https://bulbapedia.bulbagarden.net/wiki/Gigantamax'
         };
-      
+
         const url = urls[nombre];
         if (url) {
-          Linking.openURL(url);
+            Linking.openURL(url);
         } else {
-          console.warn('No hay URL para:', etiqueta);
+            console.warn('No hay URL para:', etiqueta);
         }
-      };
-      
+    };
+
 
     useEffect(() => {
         const fetchAllPokemon = async () => {
@@ -207,7 +245,7 @@ export default function Diario() {
         setTopLabels(top);
         setLeftLabels(left);
     }, []);
-    
+
     const isBoardComplete = () => {
         for (let row = 0; row < 3; row++) {
             for (let col = 0; col < 3; col++) {
@@ -231,126 +269,126 @@ export default function Diario() {
         regions: string[],
         leftLabels: string[],
         topLabels: string[]
-      ) => {
+    ) => {
         if (selectedIndex === null) return;
-      
+
         const row = Math.floor(selectedIndex / 3);
         const col = selectedIndex % 3;
-      
+
         const labelFila = leftLabels[row];
         const labelColumna = topLabels[col];
-      
+
         const tiposEspanolIngles: { [key: string]: string } = {
-          'Agua': 'water', 'Fuego': 'fire', 'Planta': 'grass', 'Electrico': 'electric',
-          'Hielo': 'ice', 'Tierra': 'ground', 'Bicho': 'bug', 'Fantasma': 'ghost',
-          'Roca': 'rock', 'Acero': 'steel', 'Dragon': 'dragon', 'Hada': 'fairy',
-          'Lucha': 'fighting', 'Normal': 'normal', 'Veneno': 'poison', 'Psiquico': 'psychic',
-          'Siniestro': 'dark', 'Volador': 'flying',
+            'Agua': 'water', 'Fuego': 'fire', 'Planta': 'grass', 'Electrico': 'electric',
+            'Hielo': 'ice', 'Tierra': 'ground', 'Bicho': 'bug', 'Fantasma': 'ghost',
+            'Roca': 'rock', 'Acero': 'steel', 'Dragon': 'dragon', 'Hada': 'fairy',
+            'Lucha': 'fighting', 'Normal': 'normal', 'Veneno': 'poison', 'Psiquico': 'psychic',
+            'Siniestro': 'dark', 'Volador': 'flying',
         };
-      
+
         const sufijosRegionales: { [key: string]: string } = {
-          'Alola': '-alola',
-          'Galar': '-galar',
-          'Hisui': '-hisui',
-          'Paldea': '-paldea',
+            'Alola': '-alola',
+            'Galar': '-galar',
+            'Hisui': '-hisui',
+            'Paldea': '-paldea',
         };
-      
+
         const sufijosMega: string[] = ['-mega', '-gmax'];
-      
+
         const formatLabel = (label: string) =>
-          label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
-      
+            label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
+
         const formattedFila = formatLabel(labelFila);
         const formattedColumna = formatLabel(labelColumna);
-      
+
         const tipoFila = tiposEspanolIngles[formattedFila];
         const tipoColumna = tiposEspanolIngles[formattedColumna];
-      
+
         const filaEsRegion = regions.includes(formattedFila);
         const columnaEsRegion = regions.includes(formattedColumna);
-      
+
         const speciesRes = await fetch(pokemon.species.url);
         const speciesData = await speciesRes.json();
         const generation = speciesData.generation.name;
-      
+
         const genToRegion: { [key: string]: string } = {
-          'generation-i': 'Kanto',
-          'generation-ii': 'Johto',
-          'generation-iii': 'Hoenn',
-          'generation-iv': 'Sinnoh',
-          'generation-v': 'Teselia',
-          'generation-vi': 'Kalos',
-          'generation-vii': 'Alola',
-          'generation-viii': 'Galar',
-          'generation-ix': 'Paldea',
-          'generation-x': 'Hisui',
+            'generation-i': 'Kanto',
+            'generation-ii': 'Johto',
+            'generation-iii': 'Hoenn',
+            'generation-iv': 'Sinnoh',
+            'generation-v': 'Teselia',
+            'generation-vi': 'Kalos',
+            'generation-vii': 'Alola',
+            'generation-viii': 'Galar',
+            'generation-ix': 'Paldea',
+            'generation-x': 'Hisui',
         };
-      
+
         const regionPokemon = genToRegion[generation];
         const tiposPokemon = pokemon.types.map((t: any) => t.type.name.toLowerCase());
         const nombrePokemon = pokemon.name.toLowerCase();
-      
+
         let valido = false;
-      
+
         const esMegaO_Gmax = sufijosMega.some((sufijo: string) => nombrePokemon.includes(sufijo));
-      
+
         const cumpleConTipos = (tipos: string[]) => {
-          return tipos.some((tipo: string) => tipo === tipoFila || tipo === tipoColumna);
+            return tipos.some((tipo: string) => tipo === tipoFila || tipo === tipoColumna);
         };
-      
+
         const esFormaMega = formattedFila === 'Mega' || formattedColumna === 'Mega';
         const esFormaGmax = formattedFila === 'G-max' || formattedColumna === 'G-max';
-      
+
         if (filaEsRegion && columnaEsRegion) {
-          valido = false; // No se permiten combinaciones de dos regiones
+            valido = false; // No se permiten combinaciones de dos regiones
         } else if (filaEsRegion || columnaEsRegion) {
-          const tipo = filaEsRegion ? tipoColumna : tipoFila;
-          const region = filaEsRegion ? formattedFila : formattedColumna;
-      
-          const sufijoEsperado = sufijosRegionales[region];
-          const esFormaRegional = sufijoEsperado && nombrePokemon.includes(sufijoEsperado);
-          const esNativoDeRegion = regionPokemon === region;
-      
-          valido = tiposPokemon.includes(tipo) && (esFormaRegional || esNativoDeRegion);
+            const tipo = filaEsRegion ? tipoColumna : tipoFila;
+            const region = filaEsRegion ? formattedFila : formattedColumna;
+
+            const sufijoEsperado = sufijosRegionales[region];
+            const esFormaRegional = sufijoEsperado && nombrePokemon.includes(sufijoEsperado);
+            const esNativoDeRegion = regionPokemon === region;
+
+            valido = tiposPokemon.includes(tipo) && (esFormaRegional || esNativoDeRegion);
         } else if (esFormaMega || esFormaGmax) {
-          // Casillas especiales que piden Mega o Gmax
-          if (esFormaMega && nombrePokemon.includes('-mega')) {
-            valido = cumpleConTipos(tiposPokemon);
-          } else if (esFormaGmax && nombrePokemon.includes('-gmax')) {
-            valido = cumpleConTipos(tiposPokemon);
-          } else {
-            valido = false;
-          }
-        } else {
-          // Casillas normales (ni Mega ni Gmax)
-            if (tipoFila && tipoColumna && tipoFila !== tipoColumna) {
-              // Si ambos son tipos distintos, debe tener AMBOS
-              valido = tiposPokemon.includes(tipoFila) && tiposPokemon.includes(tipoColumna);
+            // Casillas especiales que piden Mega o Gmax
+            if (esFormaMega && nombrePokemon.includes('-mega')) {
+                valido = cumpleConTipos(tiposPokemon);
+            } else if (esFormaGmax && nombrePokemon.includes('-gmax')) {
+                valido = cumpleConTipos(tiposPokemon);
             } else {
-              // Si solo hay un tipo (porque la otra etiqueta es región u otra cosa), vale con que tenga uno
-              valido = cumpleConTipos(tiposPokemon);
+                valido = false;
+            }
+        } else {
+            // Casillas normales (ni Mega ni Gmax)
+            if (tipoFila && tipoColumna && tipoFila !== tipoColumna) {
+                // Si ambos son tipos distintos, debe tener AMBOS
+                valido = tiposPokemon.includes(tipoFila) && tiposPokemon.includes(tipoColumna);
+            } else {
+                // Si solo hay un tipo (porque la otra etiqueta es región u otra cosa), vale con que tenga uno
+                valido = cumpleConTipos(tiposPokemon);
             }
         }
-      
+
         // Validaciones extra por forma
         if (esFormaMega && !nombrePokemon.includes('-mega')) {
-          valido = false;
+            valido = false;
         }
-      
+
         if (esFormaGmax && !nombrePokemon.includes('-gmax')) {
-          valido = false;
+            valido = false;
         }
-      
+
         if (!valido) {
-          setErrorModal({
-            visible: true,
-            message: `Este Pokémon no cumple con los requisitos:\n• ${labelFila}\n• ${labelColumna}`
-          });
-          return;
+            setErrorModal({
+                visible: true,
+                message: `Este Pokémon no cumple con los requisitos:\n• ${labelFila}\n• ${labelColumna}`
+            });
+            return;
         }
-      
+
         if (board[row][col]) return;
-      
+
         const now = new Date();
         const elapsedSeconds = Math.floor((now.getTime() - (startTime?.getTime() || 0)) / 1000);
         const totalDuration = 120; // 2 minutos = 120 segundos
@@ -364,35 +402,38 @@ export default function Diario() {
         const extraPoints = Math.floor(timeMultiplier * 100);
 
         const totalPoints = basePoints + extraPoints;
-        setScore(prev => prev + totalPoints);
-      
+        const puntuacionFinal = score + totalPoints;
+        setScore(puntuacionFinal);
+
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
         setBoard(newBoard);
-      
+
         if (isBoardComplete()) {
-          setVictoryModalVisible(true);
+            setVictoryModalVisible(true);
+            await actualizarModoLibre(usuario?.uid!, puntuacionFinal);
+
         }
-      
+
         const sprite = pokemon.sprites.front_default;
         if (sprite) {
-          setSprites(prev => ({
-            ...prev,
-            [selectedIndex]: sprite
-          }));
+            setSprites(prev => ({
+                ...prev,
+                [selectedIndex]: sprite
+            }));
         }
-      
-        setModalVisible(false);
-      };
-      
 
-      const resetGame = () => {
+        setModalVisible(false);
+    };
+
+
+    const resetGame = () => {
         setBoard(inicializaTableroVacio());
         setScore(0);
         setStartTime(new Date());
-      };
-      
-      return (
+    };
+
+    return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.title}>Puzzle Libre</Text>
@@ -400,14 +441,14 @@ export default function Diario() {
                     <Image source={require('../assets/images/tfg/help.png')} style={styles.infoIcon} />
                 </TouchableOpacity>
             </View>
-    
+
             <View style={styles.scoreContainer}>
                 <Text style={styles.scoreText}>Puntuación: {score}</Text>
-                <Image source={getBallImage(score)} style={styles.scoreIcon}/>
+                <Image source={getBallImage(score)} style={styles.scoreIcon} />
                 <Text style={styles.timerText}>{formatTime(remainingTime)}</Text>
             </View>
 
-    
+
             <View style={styles.gridContainer}>
                 {/* Fila superior con las etiquetas */}
                 <View style={styles.row}>
@@ -444,7 +485,7 @@ export default function Diario() {
                                             style={{
                                                 fontFamily: 'Pixel',
                                                 fontSize: 16,
-                                                color: '#000', 
+                                                color: '#000',
                                                 textAlign: 'center',
                                             }}
                                         >
@@ -471,7 +512,7 @@ export default function Diario() {
                         );
                     })}
                 </View>
-    
+
                 {/* Fila del tablero con las etiquetas a la izquierda */}
                 {Array.from({ length: 3 }).map((_, rowIdx) => (
                     <View key={rowIdx} style={styles.row}>
@@ -524,7 +565,7 @@ export default function Diario() {
                                 </Text>
                             )}
                         </TouchableOpacity>
-    
+
                         {/* Celdas del tablero */}
                         {Array.from({ length: 3 }).map((_, colIdx) => {
                             const index = rowIdx * 3 + colIdx;
@@ -537,22 +578,22 @@ export default function Diario() {
                                     onPress={() => handleCellPress(index)}
                                     disabled={!!sprites[index]} // desactiva si ya hay un Pokémon
                                     activeOpacity={0.6} // da una sensación táctil suave
-                                    >
+                                >
                                     {sprites[index] && (
                                         <Image source={{ uri: sprites[index] }} style={{ width: 85, height: 85 }} />
                                     )}
                                 </TouchableOpacity>
                             );
-                            })}
+                        })}
                     </View>
                 ))}
             </View>
-    
+
             <TouchableOpacity
-                    style={styles.surrenderButton} onPress={() => {resetGame();setsurrenderModal(true);}}>
-                    <Text style={styles.surrenderText}>Rendirse</Text>
+                style={styles.surrenderButton} onPress={() => { resetGame(); setsurrenderModal(true); }}>
+                <Text style={styles.surrenderText}>Rendirse</Text>
             </TouchableOpacity>
-    
+
             {/* Modal de búsqueda */}
             <Modal visible={modalVisible} animationType="slide">
                 <View style={{ flex: 1, backgroundColor: Colors.Fondo, padding: 20 }}>
@@ -576,7 +617,7 @@ export default function Diario() {
                                 name.toLowerCase().includes(text.toLowerCase())
                             ).slice(0, 20); // cantidad de resultados al buscar
                             setResults(filtered);
-    
+
                             filtered.forEach(async (name) => {
                                 if (!pokemonSprites[name]) {
                                     try {
@@ -616,9 +657,9 @@ export default function Diario() {
                             Volver
                         </Text>
                     </TouchableOpacity>
-    
+
                     {loading && <ActivityIndicator size="large" color={Colors.Botones_menu} />}
-    
+
                     <FlatList
                         data={results}
                         keyExtractor={(item) => item}
@@ -640,13 +681,13 @@ export default function Diario() {
                                 {pokemonSprites[item] && (
                                     <Image source={{ uri: pokemonSprites[item] }} style={{ width: 80, height: 80 }} />
                                 )}
-                                <Text style={styles.typeLabel2}>{String(item)}</Text> 
+                                <Text style={styles.typeLabel2}>{String(item)}</Text>
                             </TouchableOpacity>
                         )}
                     />
                 </View>
             </Modal>
-    
+
             {/* Modal de error */}
             <Modal
                 visible={errorModal.visible}
@@ -816,13 +857,13 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal>
-{           /* Modal rendirte*/}
+            {           /* Modal rendirte*/}
             <Modal
                 animationType="fade"
                 transparent={true}
                 visible={surrenderModal}
                 onRequestClose={() => setsurrenderModal(false)}
-                >
+            >
                 <View style={{
                     flex: 1,
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -830,124 +871,124 @@ export default function Diario() {
                     alignItems: 'center'
                 }}>
                     <View style={{
-                    backgroundColor: Colors.Fondo,
-                    padding: 24,
-                    borderRadius: 20,
-                    borderColor: Colors.Tablero,
-                    borderWidth: 2,
-                    maxWidth: '80%'
+                        backgroundColor: Colors.Fondo,
+                        padding: 24,
+                        borderRadius: 20,
+                        borderColor: Colors.Tablero,
+                        borderWidth: 2,
+                        maxWidth: '80%'
                     }}>
-                    <Text style={{
-                        fontFamily: 'Pixel',
-                        fontSize: 16,
-                        color: Colors.blanco,
-                        textAlign: 'center',
-                        marginBottom: 16
-                    }}>
-                        ¿Estás seguro de que quieres rendirte?{'\n'}Perderás todo tu progreso.
-                    </Text>
-
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <TouchableOpacity
-                        onPress={() => setsurrenderModal(false)}
-                        style={{
-                            backgroundColor: Colors.Botones_menu,
-                            paddingVertical: 8,
-                            paddingHorizontal: 16,
-                            borderRadius: 10,
-                            marginRight: 10,
-                            flex: 1
-                        }}
-                        >
                         <Text style={{
                             fontFamily: 'Pixel',
-                            fontSize: 14,
+                            fontSize: 16,
                             color: Colors.blanco,
-                            textAlign: 'center'
+                            textAlign: 'center',
+                            marginBottom: 16
                         }}>
-                            Cancelar
+                            ¿Estás seguro de que quieres rendirte?{'\n'}Perderás todo tu progreso.
                         </Text>
-                        </TouchableOpacity>
 
-                        <TouchableOpacity
-                        onPress={() => {
-                            setsurrenderModal(false);
-                            navigation.goBack(); // Aquí va la acción de rendirse
-                        }}
-                        style={{
-                            backgroundColor: Colors.Botones_menu,
-                            paddingVertical: 8,
-                            paddingHorizontal: 16,
-                            borderRadius: 10,
-                            flex: 1
-                        }}
-                        >
-                        <Text style={{
-                            fontFamily: 'Pixel',
-                            fontSize: 14,
-                            color: Colors.blanco,
-                            textAlign: 'center'
-                        }}>
-                            Rendirse
-                        </Text>
-                        </TouchableOpacity>
-                    </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <TouchableOpacity
+                                onPress={() => setsurrenderModal(false)}
+                                style={{
+                                    backgroundColor: Colors.Botones_menu,
+                                    paddingVertical: 8,
+                                    paddingHorizontal: 16,
+                                    borderRadius: 10,
+                                    marginRight: 10,
+                                    flex: 1
+                                }}
+                            >
+                                <Text style={{
+                                    fontFamily: 'Pixel',
+                                    fontSize: 14,
+                                    color: Colors.blanco,
+                                    textAlign: 'center'
+                                }}>
+                                    Cancelar
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setsurrenderModal(false);
+                                    navigation.goBack(); // Aquí va la acción de rendirse
+                                }}
+                                style={{
+                                    backgroundColor: Colors.Botones_menu,
+                                    paddingVertical: 8,
+                                    paddingHorizontal: 16,
+                                    borderRadius: 10,
+                                    flex: 1
+                                }}
+                            >
+                                <Text style={{
+                                    fontFamily: 'Pixel',
+                                    fontSize: 14,
+                                    color: Colors.blanco,
+                                    textAlign: 'center'
+                                }}>
+                                    Rendirse
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
-            </Modal> 
-              <Modal visible={infoVisible} transparent animationType="slide">
-                  <View style={{
-                      flex: 1,
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      justifyContent: 'center',
-                      alignItems: 'center'
-                  }}>
-                      <View style={{
-                          backgroundColor: Colors.Fondo,
-                          padding: 24,
-                          borderRadius: 20,
-                          borderColor: Colors.Tablero,
-                          borderWidth: 2,
-                          maxWidth: '80%'
-                      }}>
-                          <Text style={{
-                              fontFamily: 'Pixel',
-                              fontSize: 16,
-                              color: Colors.blanco,
-                              textAlign: 'center',
-                              marginBottom: 16
-                          }}>
-                              ¡Bienvenido al Modo Libre!{'\n'}{'\n'}
-                              Este modo se trata de resolver un único tablero a contrarreloj: dispones de dos minutos y medio para completarlo.
-                              No hay vidas, pero cada error te hará perder valioso tiempo.{'\n'}
+            </Modal>
+            <Modal visible={infoVisible} transparent animationType="slide">
+                <View style={{
+                    flex: 1,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <View style={{
+                        backgroundColor: Colors.Fondo,
+                        padding: 24,
+                        borderRadius: 20,
+                        borderColor: Colors.Tablero,
+                        borderWidth: 2,
+                        maxWidth: '80%'
+                    }}>
+                        <Text style={{
+                            fontFamily: 'Pixel',
+                            fontSize: 16,
+                            color: Colors.blanco,
+                            textAlign: 'center',
+                            marginBottom: 16
+                        }}>
+                            ¡Bienvenido al Modo Libre!{'\n'}{'\n'}
+                            Este modo se trata de resolver un único tablero a contrarreloj: dispones de dos minutos y medio para completarlo.
+                            No hay vidas, pero cada error te hará perder valioso tiempo.{'\n'}
 
-                              Tu puntuación dependerá de la rapidez con la que lo completes, ¡así que da lo mejor de ti!{'\n'}
+                            Tu puntuación dependerá de la rapidez con la que lo completes, ¡así que da lo mejor de ti!{'\n'}
 
-                              Y recuerda: puedes pulsar sobre las etiquetas para consultar información sobre los posibles Pokémon que encajen con las condiciones. ¡Úsalo a tu favor!
-                              {'\n'}{'\n'}¡Buena suerte!
-                          </Text>
+                            Y recuerda: puedes pulsar sobre las etiquetas para consultar información sobre los posibles Pokémon que encajen con las condiciones. ¡Úsalo a tu favor!
+                            {'\n'}{'\n'}¡Buena suerte!
+                        </Text>
 
-                          <TouchableOpacity
-                              onPress={() => setInfoVisible(false)}
-                              style={{
-                                  backgroundColor: Colors.Botones_menu,
-                                  paddingVertical: 8,
-                                  paddingHorizontal: 20,
-                                  borderRadius: 10,
-                                  alignSelf: 'center'
-                              }}
-                          >
-                              <Text style={{
-                                  fontFamily: 'Pixel',
-                                  fontSize: 14,
-                                  color: Colors.blanco
-                              }}>
-                                  Entendido
-                              </Text>
-                          </TouchableOpacity>
-                      </View>
-                  </View>
-              </Modal>
+                        <TouchableOpacity
+                            onPress={() => setInfoVisible(false)}
+                            style={{
+                                backgroundColor: Colors.Botones_menu,
+                                paddingVertical: 8,
+                                paddingHorizontal: 20,
+                                borderRadius: 10,
+                                alignSelf: 'center'
+                            }}
+                        >
+                            <Text style={{
+                                fontFamily: 'Pixel',
+                                fontSize: 14,
+                                color: Colors.blanco
+                            }}>
+                                Entendido
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -956,129 +997,129 @@ const ficha_random = () => {
     const especiales = ['Mega', 'G-max'];
     const regionesBase = Object.keys(regionesPosibles);
     const regionesProbabilidad = [
-      ...regionesBase,
-      'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega','Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega' // duplicados solo para aumentar la probabilidad
+        ...regionesBase,
+        'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega', 'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega' // duplicados solo para aumentar la probabilidad
     ];
     const tipos: string[] = Object.keys(tiposCombinables).map(t =>
-      t.charAt(0).toUpperCase() + t.slice(1)
+        t.charAt(0).toUpperCase() + t.slice(1)
     );
-  
+
     const copiaRegions = [...regionesProbabilidad];
     const copiaTipos = [...tipos];
     const yaIncluidos = new Set<string>();
-  
+
     const incluirRegion = Math.random() < 0.5;
     const filasTienenRegiones = Math.random() < 0.5;
-  
+
     let topLabels: string[] = [];
     let leftLabels: string[] = [];
-  
-    const shuffleArray = (array: string[]) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    };
-  
-    const extraerEtiqueta = (arr: string[]): string => {
-      while (arr.length > 0) {
-        const index = Math.floor(Math.random() * arr.length);
-        const etiqueta = arr.splice(index, 1)[0];
-        if (especiales.includes(etiqueta)) {
-          if (yaIncluidos.has(etiqueta)) continue; // Evita duplicados
-          yaIncluidos.add(etiqueta);
-        }
-        return etiqueta;
-      }
-      return '';
-    };
-  
-    const esCombinacionValida = (fila: string, columna: string): boolean => {
-      if ((fila === 'Mega' && columna === 'G-max') || (fila === 'G-max' && columna === 'Mega')) {
-        return false;
-      }
-  
-      const filaLower = fila.toLowerCase();
-      const colLower = columna.toLowerCase();
-  
-      const filaEsRegion = regionesPosibles[fila] !== undefined || especiales.includes(fila);
-      const colEsRegion = regionesPosibles[columna] !== undefined || especiales.includes(columna);
-  
-      if (filaEsRegion && colEsRegion) return false;
-  
-      if (filaEsRegion) return !especiales.includes(fila) || tiposCombinables[colLower] !== undefined;
-      if (colEsRegion) return !especiales.includes(columna) || tiposCombinables[filaLower] !== undefined;
-  
-      return tiposCombinables[filaLower]?.includes(colLower) ?? false;
-    };
-  
-    if (incluirRegion) {
-      if (filasTienenRegiones) {
-        const left: string[] = [];
-  
-        const numRegiones = Math.random() < 0.5 ? 1 : 2;
-        for (let i = 0; i < numRegiones; i++) {
-          left.push(extraerEtiqueta(copiaRegions));
-        }
-  
-        while (left.length < 3) {
-          left.push(extraerEtiqueta(copiaTipos));
-        }
-  
-        leftLabels = shuffleArray(left);
-  
-        while (topLabels.length < 3) {
-          topLabels.push(extraerEtiqueta(copiaTipos));
-        }
-      } else {
-        const top: string[] = [];
-  
-        const numRegiones = Math.random() < 0.5 ? 1 : 2;
-        for (let i = 0; i < numRegiones; i++) {
-          top.push(extraerEtiqueta(copiaRegions));
-        }
-  
-        while (top.length < 3) {
-          top.push(extraerEtiqueta(copiaTipos));
-        }
-  
-        topLabels = shuffleArray(top);
-  
-        while (leftLabels.length < 3) {
-          leftLabels.push(extraerEtiqueta(copiaTipos));
-        }
-      }
-    } else {
-      // Solo tipos
-      const todosLosTipos = Object.keys(tiposCombinables);
-      const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
-  
-      const filasValidas = todosLosTipos.filter(tipo =>
-        columnas.every(col => esCombinacionValida(tipo, col))
-      );
-  
-      if (filasValidas.length < 3) return ficha_random();
-  
-      const filas = shuffleArray(filasValidas).slice(0, 3);
-  
-      topLabels = columnas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
-      leftLabels = filas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
-    }
-  
-    const esCuadriculaValida = leftLabels.every(fila =>
-      topLabels.every(col => esCombinacionValida(fila, col))
-    );
-  
-    if (!esCuadriculaValida) {
-      return ficha_random();
-    }
-  
-    return { top: topLabels, left: leftLabels };
-  };
-  
 
-  
+    const shuffleArray = (array: string[]) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    };
+
+    const extraerEtiqueta = (arr: string[]): string => {
+        while (arr.length > 0) {
+            const index = Math.floor(Math.random() * arr.length);
+            const etiqueta = arr.splice(index, 1)[0];
+            if (especiales.includes(etiqueta)) {
+                if (yaIncluidos.has(etiqueta)) continue; // Evita duplicados
+                yaIncluidos.add(etiqueta);
+            }
+            return etiqueta;
+        }
+        return '';
+    };
+
+    const esCombinacionValida = (fila: string, columna: string): boolean => {
+        if ((fila === 'Mega' && columna === 'G-max') || (fila === 'G-max' && columna === 'Mega')) {
+            return false;
+        }
+
+        const filaLower = fila.toLowerCase();
+        const colLower = columna.toLowerCase();
+
+        const filaEsRegion = regionesPosibles[fila] !== undefined || especiales.includes(fila);
+        const colEsRegion = regionesPosibles[columna] !== undefined || especiales.includes(columna);
+
+        if (filaEsRegion && colEsRegion) return false;
+
+        if (filaEsRegion) return !especiales.includes(fila) || tiposCombinables[colLower] !== undefined;
+        if (colEsRegion) return !especiales.includes(columna) || tiposCombinables[filaLower] !== undefined;
+
+        return tiposCombinables[filaLower]?.includes(colLower) ?? false;
+    };
+
+    if (incluirRegion) {
+        if (filasTienenRegiones) {
+            const left: string[] = [];
+
+            const numRegiones = Math.random() < 0.5 ? 1 : 2;
+            for (let i = 0; i < numRegiones; i++) {
+                left.push(extraerEtiqueta(copiaRegions));
+            }
+
+            while (left.length < 3) {
+                left.push(extraerEtiqueta(copiaTipos));
+            }
+
+            leftLabels = shuffleArray(left);
+
+            while (topLabels.length < 3) {
+                topLabels.push(extraerEtiqueta(copiaTipos));
+            }
+        } else {
+            const top: string[] = [];
+
+            const numRegiones = Math.random() < 0.5 ? 1 : 2;
+            for (let i = 0; i < numRegiones; i++) {
+                top.push(extraerEtiqueta(copiaRegions));
+            }
+
+            while (top.length < 3) {
+                top.push(extraerEtiqueta(copiaTipos));
+            }
+
+            topLabels = shuffleArray(top);
+
+            while (leftLabels.length < 3) {
+                leftLabels.push(extraerEtiqueta(copiaTipos));
+            }
+        }
+    } else {
+        // Solo tipos
+        const todosLosTipos = Object.keys(tiposCombinables);
+        const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
+
+        const filasValidas = todosLosTipos.filter(tipo =>
+            columnas.every(col => esCombinacionValida(tipo, col))
+        );
+
+        if (filasValidas.length < 3) return ficha_random();
+
+        const filas = shuffleArray(filasValidas).slice(0, 3);
+
+        topLabels = columnas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
+        leftLabels = filas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
+    }
+
+    const esCuadriculaValida = leftLabels.every(fila =>
+        topLabels.every(col => esCombinacionValida(fila, col))
+    );
+
+    if (!esCuadriculaValida) {
+        return ficha_random();
+    }
+
+    return { top: topLabels, left: leftLabels };
+};
+
+
+
 
 const styles = StyleSheet.create({
     container: {
@@ -1138,7 +1179,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontFamily: 'Pixel',
     },
-    typeLabel2: { 
+    typeLabel2: {
         flex: 1,
         width: 150,
         textAlign: 'center',
@@ -1147,8 +1188,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         fontSize: 20,
         fontFamily: 'Pixel',
-        padding:10,
-        margin:15
+        padding: 10,
+        margin: 15
     },
     cell: {
         width: 90,
@@ -1186,8 +1227,8 @@ const styles = StyleSheet.create({
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight:10,
-        marginLeft:-3        
+        marginRight: 10,
+        marginLeft: -3
     },
     disabledCell: {
         opacity: 0.5,
@@ -1197,8 +1238,8 @@ const styles = StyleSheet.create({
         color: 'white',
         marginLeft: 60,
         fontFamily: 'Pixel',
-        position: 'absolute', 
-        top: 12, 
-        right:32,
+        position: 'absolute',
+        top: 12,
+        right: 32,
     },
 });

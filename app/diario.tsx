@@ -144,8 +144,10 @@ export default function Diario() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 const fechaUltima = data.fechaUltimoPuzzle;
-                const rachaActual = data.rachaDiaria ?? 0;
+                const rachaActual = data.rachaDiaria;
                 const puntuacionMax = typeof data.puntuacionMaxDiario === "number" ? data.puntuacionMaxDiario : -1;
+                const puntuacionMaxGeneral = data.puntuacionMax;
+                const tablerosJugados = data.tablerosJugados;
 
                 const hoy = new Date();
                 const hoyStr = hoy.toISOString().split('T')[0];
@@ -165,20 +167,30 @@ export default function Diario() {
                         // No cambiamos la racha, solo actualizamos la puntuación si es mayor
                     } else if (ultimaStr === ayerStr) {
                         nuevaRacha = rachaActual + 1;
+                    } else{
+                        nuevaRacha = 0;
                     }
                 }
+                else{
+                    nuevaRacha = 1
+                }
 
-                const updates: any = {
-                    fechaUltimoPuzzle: hoyStr,
-                };
+                const updates: any = {fechaUltimoPuzzle: hoyStr, tablerosJugados: tablerosJugados + 1};
 
                 // Solo actualizamos la puntuación si la nueva es mayor
+
                 if (puntuacionFinal > puntuacionMax) {
                     updates.puntuacionMaxDiario = puntuacionFinal;
                     console.log("Nueva puntuación máxima guardada:", puntuacionFinal);
-                } else {
+                } 
+                else {
                     console.log("La puntuación final no supera la anterior.");
                 }
+                
+                if( puntuacionFinal > puntuacionMaxGeneral) {
+                    await updateDoc(docRef,{puntuacionMax:puntuacionFinal});
+                    console.log("Puntuacion maxima general actualizada:", puntuacionFinal);
+                } 
 
                 if (nuevaRacha !== rachaActual) {
                     updates.rachaDiaria = nuevaRacha;

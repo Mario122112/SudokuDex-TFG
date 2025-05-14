@@ -170,14 +170,20 @@ export default function Diario() {
         const data = snapshot.data();
         const recordAnterior = data.rachaCarrusel;
         const puntuacionMaxima = data.puntuacionMaxCarrusel;
+        const puntuacionMaxGeneral = data.puntuacionMax;
+        const tablerosJugados = data.tablerosJugados;
 
-        const updates: any = {};
+        const updates: any = { tablerosJugados: tablerosJugados + 1};
         if (tablerosCompletados > recordAnterior) {
             updates.rachaCarrusel = tablerosCompletados;
         }
 
         if (puntuacionFinal > puntuacionMaxima) {
             updates.puntuacionMaxCarrusel = puntuacionFinal;
+        }
+
+        if (puntuacionFinal > puntuacionMaxGeneral) {
+            updates.puntuacionMax = puntuacionFinal;
         }
 
         if (Object.keys(updates).length > 0) {
