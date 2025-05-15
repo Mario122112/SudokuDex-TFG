@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, Flat
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/FireBaseconfig';
 
 
@@ -173,6 +173,29 @@ export default function Diario() {
             console.error("Error actualizando puntuación del modo libre:", error);
         }
     };
+
+    const añadirPokemonADex = async (usuarioID: string, pokemonID: number) => {
+            const docRef = doc(db, "Pokedex", usuarioID);
+            try {
+                const snapshot = await getDoc(docRef);
+    
+                if (!snapshot.exists()) {
+                    
+                    await setDoc(docRef, {
+                        pokemons: [pokemonID]
+                    });
+                    console.log("Documento creado y Pokémon añadido:", pokemonID);
+                } else {
+                    
+                    await updateDoc(docRef, {
+                        pokemons: arrayUnion(pokemonID)
+                    });
+                    console.log("Pokémon añadido al array:", pokemonID);
+                }
+            } catch (error) {
+                console.error("Error al añadir Pokémon al documento Pokedex:", error);
+            }
+        };
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
@@ -408,6 +431,8 @@ export default function Diario() {
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
         setBoard(newBoard);
+
+        await añadirPokemonADex(usuario?.uid!, pokemon.id);;
 
         if (isBoardComplete()) {
             setVictoryModalVisible(true);

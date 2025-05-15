@@ -4,7 +4,7 @@ import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import seedrandom from 'seedrandom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/FireBaseconfig';
 import { getAuth } from 'firebase/auth';
 
@@ -117,20 +117,30 @@ export default function Diario() {
 
     useEffect(() => {
         const interval = setInterval(() => {
-          setRemainingTime(prev => {
-            if (prev <= 0) {
-              clearInterval(interval);
-              return 0;
-            }
-            return prev - 1;
-          });
+            setRemainingTime(prev => {
+                if (prev <= 0) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
-      
+
         return () => clearInterval(interval); // Limpiar al desmontar
     }, []);
 
-      useEffect(() => {
-        if (remainingTime <= 0) {
+    /**useEffect(() => {
+    if (remainingTime <= 0) return;
+
+    const interval = setInterval(() => {
+        setRemainingTime(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+}, [remainingTime]); */
+
+    useEffect(() => {
+        if (remainingTime === 0) {
           setTimeOutModalVisible(true);
         }
     }, [remainingTime]);
@@ -205,6 +215,28 @@ export default function Diario() {
         }
     };
 
+    const añadirPokemonADex = async (usuarioID: string, pokemonID: number) => {
+        const docRef = doc(db, "Pokedex", usuarioID);
+        try {
+            const snapshot = await getDoc(docRef);
+
+            if (!snapshot.exists()) {
+                
+                await setDoc(docRef, {
+                    pokemons: [pokemonID]
+                });
+                console.log("Documento creado y Pokémon añadido:", pokemonID);
+            } else {
+                
+                await updateDoc(docRef, {
+                    pokemons: arrayUnion(pokemonID)
+                });
+                console.log("Pokémon añadido al array:", pokemonID);
+            }
+        } catch (error) {
+            console.error("Error al añadir Pokémon al documento Pokedex:", error);
+        }
+    };
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
@@ -440,6 +472,8 @@ export default function Diario() {
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
         setBoard(newBoard);
+
+        await añadirPokemonADex(usuario?.uid!, pokemon.id);
       
         if (isBoardComplete()) {
           setVictoryModalVisible(true);
@@ -699,7 +733,7 @@ export default function Diario() {
                                     try {
                                         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${item}`);
                                         const data = await res.json();
-                                        handleSelect(data, regions, leftLabels, topLabels); // Ahora pasamos todos los parámetros necesarios
+                                        handleSelect(data, regions, leftLabels, topLabels); 
                                     } catch (e) {
                                         console.error('Error al cargar Pokémon', e);
                                     }
@@ -965,130 +999,138 @@ const ficha_random = () => {
     const especiales = ['Mega', 'G-max'];
     const regionesBase = Object.keys(regionesPosibles);
     const regionesProbabilidad = [
-      ...regionesBase,
-      'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega', 'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega'
+        ...regionesBase,
+        'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega', 'Mega',
+        'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega'
     ];
     const tipos: string[] = Object.keys(tiposCombinables).map(t =>
-      t.charAt(0).toUpperCase() + t.slice(1)
+        t.charAt(0).toUpperCase() + t.slice(1)
     );
-  
-    // Semilla basada en la fecha
+
     const hoy = new Date();
     const fechaSemilla = `${hoy.getFullYear()}-${hoy.getMonth() + 1}-${hoy.getDate()}`;
     const rng = seedrandom(fechaSemilla);
-  
-    const copiaRegions = [...regionesProbabilidad];
-    const copiaTipos = [...tipos];
-    const yaIncluidos = new Set<string>();
-  
-    const incluirRegion = rng() < 0.5;
-    const filasTienenRegiones = rng() < 0.5;
-  
-    let topLabels: string[] = [];
-    let leftLabels: string[] = [];
-  
-    const shuffleArray = (array: string[]) => {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(rng() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    };
-  
-    const extraerEtiqueta = (arr: string[]): string => {
-      while (arr.length > 0) {
-        const index = Math.floor(rng() * arr.length);
-        const etiqueta = arr.splice(index, 1)[0];
-        if (especiales.includes(etiqueta)) {
-          if (yaIncluidos.has(etiqueta)) continue;
-          yaIncluidos.add(etiqueta);
+
+    const MAX_INTENTOS = 10;
+
+    for (let intento = 0; intento < MAX_INTENTOS; intento++) {
+        const copiaRegions = [...regionesProbabilidad];
+        const copiaTipos = [...tipos];
+        const yaIncluidos = new Set<string>();
+
+        const incluirRegion = rng() < 0.5;
+        const filasTienenRegiones = rng() < 0.5;
+
+        let topLabels: string[] = [];
+        let leftLabels: string[] = [];
+
+        const shuffleArray = (array: string[]) => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(rng() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        const extraerEtiqueta = (arr: string[]): string => {
+            while (arr.length > 0) {
+                const index = Math.floor(rng() * arr.length);
+                const etiqueta = arr.splice(index, 1)[0];
+                if (especiales.includes(etiqueta)) {
+                    if (yaIncluidos.has(etiqueta)) continue;
+                    yaIncluidos.add(etiqueta);
+                }
+                return etiqueta;
+            }
+            return '';
+        };
+
+        const esCombinacionValida = (fila: string, columna: string): boolean => {
+            if ((fila === 'Mega' && columna === 'G-max') || (fila === 'G-max' && columna === 'Mega')) {
+                return false;
+            }
+
+            const filaLower = fila.toLowerCase();
+            const colLower = columna.toLowerCase();
+
+            const filaEsRegion = regionesPosibles[fila] !== undefined || especiales.includes(fila);
+            const colEsRegion = regionesPosibles[columna] !== undefined || especiales.includes(columna);
+
+            if (filaEsRegion && colEsRegion) return false;
+
+            if (filaEsRegion) return !especiales.includes(fila) || tiposCombinables[colLower] !== undefined;
+            if (colEsRegion) return !especiales.includes(columna) || tiposCombinables[filaLower] !== undefined;
+
+            return tiposCombinables[filaLower]?.includes(colLower) ?? false;
+        };
+
+        if (incluirRegion) {
+            if (filasTienenRegiones) {
+                const left: string[] = [];
+
+                const numRegiones = rng() < 0.5 ? 1 : 2;
+                for (let i = 0; i < numRegiones; i++) {
+                    left.push(extraerEtiqueta(copiaRegions));
+                }
+
+                while (left.length < 3) {
+                    left.push(extraerEtiqueta(copiaTipos));
+                }
+
+                leftLabels = shuffleArray(left);
+
+                while (topLabels.length < 3) {
+                    topLabels.push(extraerEtiqueta(copiaTipos));
+                }
+            } else {
+                const top: string[] = [];
+
+                const numRegiones = rng() < 0.5 ? 1 : 2;
+                for (let i = 0; i < numRegiones; i++) {
+                    top.push(extraerEtiqueta(copiaRegions));
+                }
+
+                while (top.length < 3) {
+                    top.push(extraerEtiqueta(copiaTipos));
+                }
+
+                topLabels = shuffleArray(top);
+
+                while (leftLabels.length < 3) {
+                    leftLabels.push(extraerEtiqueta(copiaTipos));
+                }
+            }
+        } else {
+            const todosLosTipos = Object.keys(tiposCombinables);
+            const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
+
+            const filasValidas = todosLosTipos.filter(tipo =>
+                columnas.every(col => esCombinacionValida(tipo, col))
+            );
+
+            if (filasValidas.length < 3) continue;
+
+            const filas = shuffleArray(filasValidas).slice(0, 3);
+
+            topLabels = columnas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
+            leftLabels = filas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
         }
-        return etiqueta;
-      }
-      return '';
-    };
-  
-    const esCombinacionValida = (fila: string, columna: string): boolean => {
-      if ((fila === 'Mega' && columna === 'G-max') || (fila === 'G-max' && columna === 'Mega')) {
-        return false;
-      }
-  
-      const filaLower = fila.toLowerCase();
-      const colLower = columna.toLowerCase();
-  
-      const filaEsRegion = regionesPosibles[fila] !== undefined || especiales.includes(fila);
-      const colEsRegion = regionesPosibles[columna] !== undefined || especiales.includes(columna);
-  
-      if (filaEsRegion && colEsRegion) return false;
-  
-      if (filaEsRegion) return !especiales.includes(fila) || tiposCombinables[colLower] !== undefined;
-      if (colEsRegion) return !especiales.includes(columna) || tiposCombinables[filaLower] !== undefined;
-  
-      return tiposCombinables[filaLower]?.includes(colLower) ?? false;
-    };
-  
-    if (incluirRegion) {
-      if (filasTienenRegiones) {
-        const left: string[] = [];
-  
-        const numRegiones = rng() < 0.5 ? 1 : 2;
-        for (let i = 0; i < numRegiones; i++) {
-          left.push(extraerEtiqueta(copiaRegions));
+
+        const esCuadriculaValida = leftLabels.every(fila =>
+            topLabels.every(col => esCombinacionValida(fila, col))
+        );
+
+        if (esCuadriculaValida) {
+            return { top: topLabels, left: leftLabels };
         }
-  
-        while (left.length < 3) {
-          left.push(extraerEtiqueta(copiaTipos));
-        }
-  
-        leftLabels = shuffleArray(left);
-  
-        while (topLabels.length < 3) {
-          topLabels.push(extraerEtiqueta(copiaTipos));
-        }
-      } else {
-        const top: string[] = [];
-  
-        const numRegiones = rng() < 0.5 ? 1 : 2;
-        for (let i = 0; i < numRegiones; i++) {
-          top.push(extraerEtiqueta(copiaRegions));
-        }
-  
-        while (top.length < 3) {
-          top.push(extraerEtiqueta(copiaTipos));
-        }
-  
-        topLabels = shuffleArray(top);
-  
-        while (leftLabels.length < 3) {
-          leftLabels.push(extraerEtiqueta(copiaTipos));
-        }
-      }
-    } else {
-      const todosLosTipos = Object.keys(tiposCombinables);
-      const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
-  
-      const filasValidas = todosLosTipos.filter(tipo =>
-        columnas.every(col => esCombinacionValida(tipo, col))
-      );
-  
-      if (filasValidas.length < 3) return ficha_random();
-  
-      const filas = shuffleArray(filasValidas).slice(0, 3);
-  
-      topLabels = columnas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
-      leftLabels = filas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
     }
-  
-    const esCuadriculaValida = leftLabels.every(fila =>
-      topLabels.every(col => esCombinacionValida(fila, col))
-    );
-  
-    if (!esCuadriculaValida) {
-      return ficha_random();
-    }
-  
-    return { top: topLabels, left: leftLabels };
-  };
+
+    console.error('No se pudo generar una cuadrícula válida tras varios intentos');
+    return {
+        top: ['Error1', 'Error2', 'Error3'],
+        left: ['Error1', 'Error2', 'Error3']
+    };
+};
   
 
   

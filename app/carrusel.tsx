@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, Flat
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { Linking } from 'react-native';
-import { getDoc, doc, updateDoc } from 'firebase/firestore';
+import { getDoc, doc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { db } from '@/FireBaseconfig';
+import { auth, db } from '@/FireBaseconfig';
 import { Double } from 'react-native/Libraries/Types/CodegenTypes';
 
 
@@ -106,6 +106,7 @@ export default function Diario() {
     const [contador, setContador] = useState(0);
     const [gameOverModalVisible, setGameOverModalVisible] = useState(false);
     const [infoVisible, setInfoVisible] = useState(false);
+    const usuario = auth.currentUser;
 
     useEffect(() => {
     if (!startTime) {
@@ -194,6 +195,28 @@ export default function Diario() {
         }
     };
 
+    const añadirPokemonADex = async (usuarioID: string, pokemonID: number) => {
+        const docRef = doc(db, "Pokedex", usuarioID);
+        try {
+            const snapshot = await getDoc(docRef);
+
+            if (!snapshot.exists()) {
+
+                await setDoc(docRef, {
+                    pokemons: [pokemonID]
+                });
+                console.log("Documento creado y Pokémon añadido:", pokemonID);
+            } else {
+
+                await updateDoc(docRef, {
+                    pokemons: arrayUnion(pokemonID)
+                });
+                console.log("Pokémon añadido al array:", pokemonID);
+            }
+        } catch (error) {
+            console.error("Error al añadir Pokémon al documento Pokedex:", error);
+        }
+    };
 
 
     const abrirInfo = (etiqueta: string) => {
@@ -431,6 +454,8 @@ export default function Diario() {
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
         setBoard(newBoard);
+
+        await añadirPokemonADex(usuario?.uid!, pokemon.id);
       
         if (isBoardComplete()) {
             setBoardCompletedModalVisible(true);
