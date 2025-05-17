@@ -60,6 +60,7 @@ const PokedexScreen = () => {
   const [pokemonsDesbloqueados, setPokemonsDesbloqueados] = useState<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [pokemonSeleccionado, setPokemonSeleccionado] = useState<any>(null);
+  const [loadingPokemons, setLoadingPokemons] = useState(true);
 
 
   type Usuario = {
@@ -84,14 +85,16 @@ const PokedexScreen = () => {
       if (!user) return;
 
       try {
-        // Leer datos usuario
+        setLoadingPokemons(true); // Activamos el loading
+
+        // Leer datos del usuario
         const userDocRef = doc(firestore, "Usuarios", user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
 
-          // Leer pokedex del usuario (documento con ID user.uid)
+          // Leer pokedex del usuario
           const pokedexDocRef = doc(firestore, "Pokedex", user.uid);
           const pokedexDocSnap = await getDoc(pokedexDocRef);
 
@@ -99,7 +102,7 @@ const PokedexScreen = () => {
 
           if (pokedexDocSnap.exists()) {
             const data = pokedexDocSnap.data();
-            idsDesbloqueados = data.pokemonsDesbloqueados || [];
+            idsDesbloqueados = data.pokemons || []; // 👈 CORREGIDO AQUÍ
           }
 
           setPokemonsDesbloqueados(idsDesbloqueados);
@@ -123,13 +126,13 @@ const PokedexScreen = () => {
         }
       } catch (error) {
         console.error("Error al obtener datos del usuario:", error);
+      } finally {
+        setLoadingPokemons(false); // Finalizamos el loading
       }
     };
 
     fetchUserData();
   }, []);
-
-
 
 
 
@@ -327,32 +330,35 @@ const PokedexScreen = () => {
 
 
             {/* Sprites */}
-              <FlatList
-                data={pokemonsFiltrados}
-                keyExtractor={(item, index) => `${item.id}-${index}`}
-                numColumns={5}
-                contentContainerStyle={styles.pokemonGrid}
-                renderItem={({ item }) => {
-                  const estaDesbloqueado = pokemonsDesbloqueados.includes(item.id);
-                  return (
-                    <TouchableOpacity
-                      disabled={!estaDesbloqueado}
-                      onPress={() => estaDesbloqueado && openModalConInfo(item)}
-                      style={{ margin: 5, opacity: estaDesbloqueado ? 1 : 0.3 }}
-                    >
-                      <Image
-                        source={{ uri: item.sprites.front_default }}
-                        style={{ width: 60, height: 60, tintColor: estaDesbloqueado ? undefined : 'gray' }}
-                      />
-                      <Text style={{ textAlign: 'center' }}>{item.name}</Text>
-                    </TouchableOpacity>
-                  );
-                }}
-
-                onEndReached={fetchPokemons}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={loading ? <Text style={styles.infoText}>Cargando más...</Text> : null}
-              />
+              {loadingPokemons ? (
+                <Text style={styles.infoText}>Cargando pokemons desbloqueados...</Text>
+              ) : (
+                <FlatList
+                  data={pokemonsFiltrados}
+                  keyExtractor={(item, index) => `${item.id}-${index}`}
+                  numColumns={5}
+                  contentContainerStyle={styles.pokemonGrid}
+                  renderItem={({ item }) => {
+                    const estaDesbloqueado = pokemonsDesbloqueados.includes(item.id);
+                    return (
+                      <TouchableOpacity
+                        disabled={!estaDesbloqueado}
+                        onPress={() => estaDesbloqueado && openModalConInfo(item)}
+                        style={{ margin: 5, opacity: estaDesbloqueado ? 1 : 0.3 }}
+                      >
+                        <Image
+                          source={{ uri: item.sprites.front_default }}
+                          style={{ width: 60, height: 60, tintColor: estaDesbloqueado ? undefined : 'gray' }}
+                        />
+                        <Text style={{ textAlign: 'center' }}>{item.name}</Text>
+                      </TouchableOpacity>
+                    );
+                  }}
+                  onEndReached={fetchPokemons}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={loading ? <Text style={styles.infoText}>Cargando más...</Text> : null}
+                />
+              )}
           </>
         )}
       </View>
