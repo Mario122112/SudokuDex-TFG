@@ -102,12 +102,12 @@ const PokedexScreen = () => {
 
           if (pokedexDocSnap.exists()) {
             const data = pokedexDocSnap.data();
-            idsDesbloqueados = data.pokemons || []; // 👈 CORREGIDO AQUÍ
+            idsDesbloqueados = data.pokemons;
           }
 
           setPokemonsDesbloqueados(idsDesbloqueados);
 
-          const progreso = (idsDesbloqueados.length / TOTAL_POKEMONS) * 100;
+          const progreso = Math.round((idsDesbloqueados.length / TOTAL_POKEMONS) * 100);
 
           const usuario: Usuario = {
             tablerosJugados: userData.tablerosJugados,
@@ -202,20 +202,35 @@ const PokedexScreen = () => {
     })
   : pokemons;
 
-  const fetchPokemonInfo = async (id: number) => {
-    try {
-      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-      const data = await res.json();
-      setPokemonSeleccionado(data);
-      setModalVisible(true);
-    } catch (error) {
-      console.error("Error al cargar info del Pokémon", error);
-    }
-  };
-
   const openModalConInfo = (pokemon: Pokemon) => {
     setPokemonSeleccionado(pokemon);
     setModalVisible(true);
+  };
+
+  const tiposInglesEspañol: { [key: string]: string } = {
+    normal: 'Normal',
+    fire: 'Fuego',
+    water: 'Agua',
+    electric: 'Eléctrico',
+    grass: 'Planta',
+    ice: 'Hielo',
+    fighting: 'Lucha',
+    poison: 'Veneno',
+    ground: 'Tierra',
+    flying: 'Volador',
+    psychic: 'Psíquico',
+    bug: 'Bicho',
+    rock: 'Roca',
+    ghost: 'Fantasma',
+    dragon: 'Dragón',
+    dark: 'Siniestro',
+    steel: 'Acero',
+    fairy: 'Hada',
+  };
+
+  const traducirYCapitalizarTipo = (tipoIngles: string): string => {
+    const tipo = tiposInglesEspañol[tipoIngles.toLowerCase()] || tipoIngles;
+    return tipo.charAt(0).toUpperCase() + tipo.slice(1);
   };
 
   
@@ -242,14 +257,14 @@ const PokedexScreen = () => {
         {/* Contenido */}
         {tabActivo === 'Datos' ? (
           <View>
-            <Text style={styles.infoText}>Tableros jugados:{usuario?.tablerosJugados}</Text>
-            <Text style={styles.infoText}>Racha Puzzle Diario:{usuario?.rachaPuzzleDiario}</Text>
-            <Text style={styles.infoText}>Racha Carrusel:{usuario?.rachaCarrusel}</Text>
+            <Text style={styles.infoText}>Tableros jugados: {usuario?.tablerosJugados}</Text>
+            <Text style={styles.infoText}>Racha Puzzle Diario: {usuario?.rachaPuzzleDiario}</Text>
+            <Text style={styles.infoText}>Racha Carrusel: {usuario?.rachaCarrusel}</Text>
             <Text style={styles.infoText}>Máxima Puntuación:{usuario?.maximaPuntuacion}</Text>
-            <Text style={styles.infoText}>Max.Puntuación Diario:{usuario?.maxPuntuacionDiario}</Text>
-            <Text style={styles.infoText}>Max.Puntuación Carrusel:{usuario?.maxPuntuacionCarrusel}</Text>
-            <Text style={styles.infoText}>Max.Puntuación Libre:{usuario?.maxPuntuacionLibre}</Text>
-            <Text style={styles.infoText}>Progreso Pokedex:{usuario?.progresoPokedex}</Text>
+            <Text style={styles.infoText}>Max.Puntuación Diario: {usuario?.maxPuntuacionDiario}</Text>
+            <Text style={styles.infoText}>Max.Puntuación Carrusel: {usuario?.maxPuntuacionCarrusel}</Text>
+            <Text style={styles.infoText}>Max.Puntuación Libre: {usuario?.maxPuntuacionLibre}</Text>
+            <Text style={styles.infoText}>Progreso Pokedex: {usuario?.progresoPokedex} %</Text>
           </View>
         ) : (
           <>
@@ -344,13 +359,13 @@ const PokedexScreen = () => {
                       <TouchableOpacity
                         disabled={!estaDesbloqueado}
                         onPress={() => estaDesbloqueado && openModalConInfo(item)}
-                        style={{ margin: 5, opacity: estaDesbloqueado ? 1 : 0.3 }}
+                        style={{ margin: 5, opacity: estaDesbloqueado ? 1 : 0.7 }}
                       >
                         <Image
                           source={{ uri: item.sprites.front_default }}
-                          style={{ width: 60, height: 60, tintColor: estaDesbloqueado ? undefined : 'gray' }}
+                          style={{ width: 60, height: 60, tintColor: estaDesbloqueado ? undefined : Colors.Botones_menu }}
                         />
-                        <Text style={{ textAlign: 'center' }}>{item.name}</Text>
+                        
                       </TouchableOpacity>
                     );
                   }}
@@ -371,7 +386,7 @@ const PokedexScreen = () => {
           padding: 20,
         }}>
           <View style={{
-            backgroundColor: 'white',
+            backgroundColor: Colors.Fondo,
             borderRadius: 10,
             padding: 20,
             width: '90%',
@@ -379,26 +394,29 @@ const PokedexScreen = () => {
           }}>
             {pokemonSeleccionado ? (
               <>
-                <Text style={{ fontWeight: 'bold', fontSize: 22, textAlign: 'center' }}>
+                <Text style={[styles.infopokemon, { textAlign: 'center' }]}>
                   {pokemonSeleccionado.name.toUpperCase()}
                 </Text>
                 <Image
                   source={{ uri: pokemonSeleccionado.sprites.front_default }}
                   style={{ width: 150, height: 150, alignSelf: 'center' }}
                 />
-                <Text>Tipo(s): {pokemonSeleccionado.types.map((t: any) => t.type.name).join(', ')}</Text>
-                <Text>Altura: {pokemonSeleccionado.height / 10} m</Text>
-                <Text>Peso: {pokemonSeleccionado.weight / 10} kg</Text>
+                <Text style={styles.infopokemon}>
+                  Tipo: {pokemonSeleccionado.types.map((t: any) => traducirYCapitalizarTipo(t.type.name)).join(' - ')}
+                </Text>
+                <Text style={styles.infopokemon}>Altura: {pokemonSeleccionado.height / 10} m</Text>
+                <Text style={styles.infopokemon}>Peso: {pokemonSeleccionado.weight / 10} kg</Text>
+                
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}
                   style={{
                     marginTop: 20,
-                    backgroundColor: '#007bff',
+                    backgroundColor: Colors.Botones_menu,
                     padding: 10,
                     borderRadius: 5,
                   }}
                 >
-                  <Text style={{ color: 'white', textAlign: 'center' }}>Cerrar</Text>
+                  <Text style={{ color: Colors.blanco, textAlign: 'center', fontFamily:'Pixel' }}>Cerrar</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -454,8 +472,8 @@ const styles = StyleSheet.create({
   infoText: {
     color: Colors.blanco,
     fontFamily: 'Pixel',
-    marginVertical: 20,
-    fontSize: 20,
+    marginVertical: 25,
+    fontSize: 23,
     marginLeft: -20,
   },
   fullLine: {
@@ -512,5 +530,11 @@ const styles = StyleSheet.create({
 },
   pokemonBloqueado: {
     tintColor: Colors.Botones_menu,  // o un filtro que oscurezca la imagen
+  },
+  infopokemon:{
+    color: Colors.blanco,
+    fontFamily: 'Pixel',
+    fontSize:20,
+    paddingVertical:3
   },
 });
