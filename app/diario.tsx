@@ -95,9 +95,7 @@ export default function Diario() {
     const [allPokemonNames, setAllPokemonNames] = useState<string[]>([]);
     const [pokemonSprites, setPokemonSprites] = useState<{ [name: string]: string }>({});
     const [victoryModalVisible, setVictoryModalVisible] = useState(false);
-    const [board, setBoard] = useState(
-        Array(3).fill(null).map(() => Array(3).fill(null))
-    );
+    const [board, setBoard] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
     const regions = ['Kanto','Johto','Hoenn','Sinnoh','Teselia','Kalos','Alola','Galar','Paldea','Hisui'];
     const [startTime, setStartTime] = useState<Date | null>(null);
     const [score, setScore] = useState(0);
@@ -177,8 +175,6 @@ export default function Diario() {
                         // No cambiamos la racha, solo actualizamos la puntuación si es mayor
                     } else if (ultimaStr === ayerStr) {
                         nuevaRacha = rachaActual + 1;
-                    } else{
-                        nuevaRacha = 0;
                     }
                 }
                 else{

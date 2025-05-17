@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {View,Text,TouchableOpacity,Image,ScrollView,StyleSheet, FlatList,} from 'react-native';
+import {View,Text,TouchableOpacity,Image,ScrollView,StyleSheet, FlatList, Modal,} from 'react-native';
 import { Colors } from '@/themes/Colors';
+import { getDoc, doc, updateDoc, setDoc, arrayUnion, collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
+import { getAuth, User } from 'firebase/auth';
+import { auth, db } from '@/FireBaseconfig';
 
 type Pokemon = {
   id: number;
@@ -51,8 +54,82 @@ const PokedexScreen = () => {
   const [filtro, setFiltro] = useState<string | null>(null);
   const [tipoFiltro, setTipoFiltro] = useState<'region' | 'tipo' | 'especial' | null>(null);
   const [valorFiltro, setValorFiltro] = useState<string | null>(null);
-  const [offset, setOffset] = useState(0); // Inicio desde el primer Pokémon
-  const [hasMore, setHasMore] = useState(true); // Para saber si quedan más por cargar
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true); 
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [pokemonsDesbloqueados, setPokemonsDesbloqueados] = useState<number[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [pokemonSeleccionado, setPokemonSeleccionado] = useState<any>(null);
+
+
+  type Usuario = {
+    tablerosJugados: number;
+    rachaPuzzleDiario: number;
+    rachaCarrusel: number;
+    maximaPuntuacion: number;
+    maxPuntuacionDiario: number;
+    maxPuntuacionCarrusel: number;
+    maxPuntuacionLibre: number;
+    progresoPokedex: number;
+  };
+
+  const TOTAL_POKEMONS = 1300;
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const auth = getAuth();
+      const firestore = getFirestore();
+      const user = auth.currentUser;
+
+      if (!user) return;
+
+      try {
+        // Leer datos usuario
+        const userDocRef = doc(firestore, "Usuarios", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+
+          // Leer pokedex del usuario (documento con ID user.uid)
+          const pokedexDocRef = doc(firestore, "Pokedex", user.uid);
+          const pokedexDocSnap = await getDoc(pokedexDocRef);
+
+          let idsDesbloqueados: number[] = [];
+
+          if (pokedexDocSnap.exists()) {
+            const data = pokedexDocSnap.data();
+            idsDesbloqueados = data.pokemonsDesbloqueados || [];
+          }
+
+          setPokemonsDesbloqueados(idsDesbloqueados);
+
+          const progreso = (idsDesbloqueados.length / TOTAL_POKEMONS) * 100;
+
+          const usuario: Usuario = {
+            tablerosJugados: userData.tablerosJugados,
+            rachaPuzzleDiario: userData.rachaDiaria,
+            rachaCarrusel: userData.rachaCarrusel,
+            maximaPuntuacion: userData.puntuacionMax,
+            maxPuntuacionDiario: userData.puntuacionMaxDiario,
+            maxPuntuacionCarrusel: userData.puntuacionMaxCarrusel,
+            maxPuntuacionLibre: userData.puntuacionMaxLibre,
+            progresoPokedex: progreso,
+          };
+
+          setUsuario(usuario);
+        } else {
+          console.log("No se encontró usuario en Firestore.");
+        }
+      } catch (error) {
+        console.error("Error al obtener datos del usuario:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+
 
 
 
@@ -122,6 +199,23 @@ const PokedexScreen = () => {
     })
   : pokemons;
 
+  const fetchPokemonInfo = async (id: number) => {
+    try {
+      const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+      const data = await res.json();
+      setPokemonSeleccionado(data);
+      setModalVisible(true);
+    } catch (error) {
+      console.error("Error al cargar info del Pokémon", error);
+    }
+  };
+
+  const openModalConInfo = (pokemon: Pokemon) => {
+    setPokemonSeleccionado(pokemon);
+    setModalVisible(true);
+  };
+
+  
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -145,15 +239,14 @@ const PokedexScreen = () => {
         {/* Contenido */}
         {tabActivo === 'Datos' ? (
           <View>
-            <Text style={styles.infoText}>Tableros jugados:</Text>
-            <Text style={styles.infoText}>Racha Puzzle Diario:</Text>
-            <Text style={styles.infoText}>Racha Carrusel:</Text>
-            <Text style={styles.infoText}>Máxima Puntuación:</Text>
-            <Text style={styles.infoText}>Max.Puntuación Diario:</Text>
-            <Text style={styles.infoText}>Max.Puntuación Carrusel:</Text>
-            <Text style={styles.infoText}>Max.Puntuación Libre:</Text>
-            <Text style={styles.infoText}>Pokémon favorito:</Text>
-            <Text style={styles.infoText}>Progreso Pokedex:</Text>
+            <Text style={styles.infoText}>Tableros jugados:{usuario?.tablerosJugados}</Text>
+            <Text style={styles.infoText}>Racha Puzzle Diario:{usuario?.rachaPuzzleDiario}</Text>
+            <Text style={styles.infoText}>Racha Carrusel:{usuario?.rachaCarrusel}</Text>
+            <Text style={styles.infoText}>Máxima Puntuación:{usuario?.maximaPuntuacion}</Text>
+            <Text style={styles.infoText}>Max.Puntuación Diario:{usuario?.maxPuntuacionDiario}</Text>
+            <Text style={styles.infoText}>Max.Puntuación Carrusel:{usuario?.maxPuntuacionCarrusel}</Text>
+            <Text style={styles.infoText}>Max.Puntuación Libre:{usuario?.maxPuntuacionLibre}</Text>
+            <Text style={styles.infoText}>Progreso Pokedex:{usuario?.progresoPokedex}</Text>
           </View>
         ) : (
           <>
@@ -234,27 +327,80 @@ const PokedexScreen = () => {
 
 
             {/* Sprites */}
-            <FlatList
-              data={pokemonsFiltrados}
-              keyExtractor={(item, index) => `${item.id}-${index}`} // Combinando ID e índice
-  // Usando solo el ID, que es único
-              numColumns={5}
-              contentContainerStyle={[styles.pokemonGrid]} 
-             renderItem={({ item }) =>
-                item.sprites?.front_default ? (
-                  <Image
-                    source={{ uri: item.sprites.front_default }}
-                    style={styles.pokemonSprite}
-                  />
-                ) : null
-              }
-              onEndReached={fetchPokemons}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={loading ? <Text style={styles.infoText}>Cargando más...</Text> : null}
-            />
+              <FlatList
+                data={pokemonsFiltrados}
+                keyExtractor={(item, index) => `${item.id}-${index}`}
+                numColumns={5}
+                contentContainerStyle={styles.pokemonGrid}
+                renderItem={({ item }) => {
+                  const estaDesbloqueado = pokemonsDesbloqueados.includes(item.id);
+                  return (
+                    <TouchableOpacity
+                      disabled={!estaDesbloqueado}
+                      onPress={() => estaDesbloqueado && openModalConInfo(item)}
+                      style={{ margin: 5, opacity: estaDesbloqueado ? 1 : 0.3 }}
+                    >
+                      <Image
+                        source={{ uri: item.sprites.front_default }}
+                        style={{ width: 60, height: 60, tintColor: estaDesbloqueado ? undefined : 'gray' }}
+                      />
+                      <Text style={{ textAlign: 'center' }}>{item.name}</Text>
+                    </TouchableOpacity>
+                  );
+                }}
+
+                onEndReached={fetchPokemons}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={loading ? <Text style={styles.infoText}>Cargando más...</Text> : null}
+              />
           </>
         )}
       </View>
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}>
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 10,
+            padding: 20,
+            width: '90%',
+            maxHeight: '80%',
+          }}>
+            {pokemonSeleccionado ? (
+              <>
+                <Text style={{ fontWeight: 'bold', fontSize: 22, textAlign: 'center' }}>
+                  {pokemonSeleccionado.name.toUpperCase()}
+                </Text>
+                <Image
+                  source={{ uri: pokemonSeleccionado.sprites.front_default }}
+                  style={{ width: 150, height: 150, alignSelf: 'center' }}
+                />
+                <Text>Tipo(s): {pokemonSeleccionado.types.map((t: any) => t.type.name).join(', ')}</Text>
+                <Text>Altura: {pokemonSeleccionado.height / 10} m</Text>
+                <Text>Peso: {pokemonSeleccionado.weight / 10} kg</Text>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(false)}
+                  style={{
+                    marginTop: 20,
+                    backgroundColor: '#007bff',
+                    padding: 10,
+                    borderRadius: 5,
+                  }}
+                >
+                  <Text style={{ color: 'white', textAlign: 'center' }}>Cerrar</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <Text>Cargando...</Text>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -358,4 +504,7 @@ const styles = StyleSheet.create({
   height: 20,
   tintColor: Colors.blanco, // Opcional, solo si quieres aplicar color
 },
+  pokemonBloqueado: {
+    tintColor: Colors.Botones_menu,  // o un filtro que oscurezca la imagen
+  },
 });
