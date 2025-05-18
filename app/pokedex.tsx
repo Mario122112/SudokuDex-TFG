@@ -3,7 +3,10 @@ import {View,Text,TouchableOpacity,Image,ScrollView,StyleSheet, FlatList, Modal,
 import { Colors } from '@/themes/Colors';
 import { getDoc, doc, updateDoc, setDoc, arrayUnion, collection, getDocs, getFirestore, query, where } from 'firebase/firestore';
 import { getAuth, User } from 'firebase/auth';
-import { auth, db } from '@/FireBaseconfig';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { navigate, RootStackParamList } from './navigation'; 
+import { router } from 'expo-router';
 
 type Pokemon = {
   id: number;
@@ -19,7 +22,7 @@ type Pokemon = {
 };
 
 
-const regiones = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea'];
+const regiones = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Unova', 'Kalos', 'Alola', 'Galar', 'Paldea'];
 const tipos: Tipo[] = ["fire", "water", "grass", "electric", "psychic", "rock", "ground", "fairy", "ghost", "dragon", "normal", "fighting", "bug", "ice", "poison", "steel", "dark", "flying"];
 const especiales = ['mega', 'gmax'];
 
@@ -61,6 +64,8 @@ const PokedexScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [pokemonSeleccionado, setPokemonSeleccionado] = useState<any>(null);
   const [loadingPokemons, setLoadingPokemons] = useState(true);
+  const [nombreUsuario, setNombreUsuario] = useState('');
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
 
   type Usuario = {
@@ -134,7 +139,21 @@ const PokedexScreen = () => {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    const auth = getAuth();
+    const db = getFirestore();
+    const user = auth.currentUser;
 
+    if (user) {
+      const userDoc = doc(db, 'Usuarios', user.uid);
+      getDoc(userDoc).then((docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setNombreUsuario(data?.nombre || '');
+        }
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (tabActivo === 'Pokémons' && pokemons.length === 0) {
@@ -202,10 +221,36 @@ const PokedexScreen = () => {
     })
   : pokemons;
 
-  const openModalConInfo = (pokemon: Pokemon) => {
-    setPokemonSeleccionado(pokemon);
+  const openModalConInfo = async (pokemon: any) => {
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+    const data = await res.json();
+
+    const speciesRes = await fetch(data.species.url); // url para species
+    const speciesData = await speciesRes.json();
+
+    const generacion = speciesData.generation.name; // ej. "generation-i"
+
+    const generacionARegion: Record<string, string> = {
+      'generation-i': 'Kanto',
+      'generation-ii': 'Johto',
+      'generation-iii': 'Hoenn',
+      'generation-iv': 'Sinnoh',
+      'generation-v': 'Unova', 
+      'generation-vi': 'Kalos',
+      'generation-vii': 'Alola',
+      'generation-viii': 'Galar',
+      'generation-ix': 'Paldea',
+    };
+
+    const region = generacionARegion[generacion] || 'Desconocida';
+
+    setPokemonSeleccionado({
+      ...data,
+      region,
+    });
     setModalVisible(true);
   };
+
 
   const tiposInglesEspañol: { [key: string]: string } = {
     normal: 'Normal',
@@ -237,7 +282,17 @@ const PokedexScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Pokédex de usuario </Text>
+        
+        <Text style={styles.title}>
+          {nombreUsuario ? `Pokédex de ${nombreUsuario}` : 'Pokédex'}
+        </Text>
+
+        <TouchableOpacity onPress={() => router.push('/')}>
+            <Image
+              source={require('../assets/images/tfg/back.png')}
+              style={{ width: 34, height: 34, left:340,top:-42, position:'absolute' }}
+            />
+        </TouchableOpacity>
 
         {/* Tabs */}
         <View style={styles.tabsContainer}>
@@ -270,15 +325,32 @@ const PokedexScreen = () => {
           <>
             {/* Filtros */}
             <View style={styles.filtroContainer}>
-              <TouchableOpacity style={styles.filtroBoton} onPress={() => setTipoFiltro((prev) => (prev === 'region' ? null : 'region'))}>
-                <Text style={styles.filtroTexto}>Regiones</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filtroBoton} onPress={() => setTipoFiltro((prev) => (prev === 'tipo' ? null : 'tipo'))}>
-                <Text style={styles.filtroTexto}>Tipos</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.filtroBoton} onPress={() => setTipoFiltro((prev) => (prev === 'especial' ? null : 'especial'))}>
-                <Text style={styles.filtroTexto}>Especiales</Text>
-              </TouchableOpacity>
+              <TouchableOpacity
+                  style={[styles.filtroBoton, tipoFiltro === 'region' ? { backgroundColor: Colors.Iconos } : null]}
+                  onPress={() => setTipoFiltro(prev => (prev === 'region' ? null : 'region'))}
+                >
+                  <Text style={[styles.filtroTexto]}>
+                    Regiones
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.filtroBoton, tipoFiltro === 'tipo' ? { backgroundColor: Colors.Iconos } : null]}
+                  onPress={() => setTipoFiltro(prev => (prev === 'tipo' ? null : 'tipo'))}
+                >
+                  <Text style={[styles.filtroTexto]}>
+                    Tipos
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.filtroBoton, tipoFiltro === 'especial' ? { backgroundColor: Colors.Iconos } : null]}
+                  onPress={() => setTipoFiltro(prev => (prev === 'especial' ? null : 'especial'))}
+                >
+                  <Text style={[styles.filtroTexto]}>
+                    Especiales
+                  </Text>
+                </TouchableOpacity>
               <TouchableOpacity style={styles.limpiarBoton} onPress={() =>{setTipoFiltro(null); setValorFiltro(null)} }>
                 <Image source={require('../assets/images/tfg/filtrar.png')}
                 style={styles.clearIcon}></Image>
@@ -406,6 +478,7 @@ const PokedexScreen = () => {
                 </Text>
                 <Text style={styles.infopokemon}>Altura: {pokemonSeleccionado.height / 10} m</Text>
                 <Text style={styles.infopokemon}>Peso: {pokemonSeleccionado.weight / 10} kg</Text>
+                <Text style={styles.infopokemon}>Región: {pokemonSeleccionado?.region}</Text>
                 
                 <TouchableOpacity
                   onPress={() => setModalVisible(false)}

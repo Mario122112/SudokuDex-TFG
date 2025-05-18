@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Image } from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useRouter } from 'expo-router';
 import { doc, setDoc } from 'firebase/firestore';
@@ -13,10 +13,18 @@ const RegistroScreen = () => {
   const [contrasena, setContrasena] = useState('');
   const [confirmar, setConfirmar] = useState('');
   const router = useRouter();
+  const [errorMensaje, setErrorMensaje] = useState('');
 
   const handleRegister = async () => {
+    setErrorMensaje(''); // Limpia errores anteriores
+
+    if (nombre.length > 10) {
+      setErrorMensaje("El nombre de usuario no puede tener más de 10 caracteres.");
+      return;
+    }
+
     if (!email || !contrasena || !confirmar || contrasena !== confirmar) {
-      alert("Por favor, completa todos los campos correctamente.");
+      setErrorMensaje("Por favor, completa todos los campos correctamente.");
       return;
     }
 
@@ -32,7 +40,7 @@ const RegistroScreen = () => {
         puntuacionMax: 0,
         puntuacionMaxDiario: 0,
         puntuacionMaxCarrusel: 0,
-        puntuacionMaxLibre:0,
+        puntuacionMaxLibre: 0,
         tablerosJugados: 0,
         pokemonDesbloqueados: [],
       });
@@ -40,9 +48,10 @@ const RegistroScreen = () => {
       router.replace('/');
     } catch (error) {
       console.error("Error registrando:", error);
-      alert("Hubo un problema al registrar el usuario.");
+      setErrorMensaje("Hubo un problema al registrar el usuario.");
     }
   };
+
 
 
   return (
@@ -80,8 +89,17 @@ const RegistroScreen = () => {
         value={confirmar}
       />
 
+      {errorMensaje !== '' && (<Text style={styles.errorTexto}>{errorMensaje}</Text>)}
+
       <TouchableOpacity style={styles.botonPrincipal} onPress={handleRegister}>
         <Text style={styles.textoBoton}>Registrarse</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => router.push('/')} style={{ position: 'absolute', top: 20, left: 20, }}>
+        <Image
+          source={require('../assets/images/tfg/back.png')}
+          style={{ width: 34, height: 34 }}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -124,6 +142,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Pixel'
   },
+  errorTexto: {
+    fontSize:20,
+  color: 'red',
+  marginBottom: 20,
+  fontFamily: 'Pixel',
+  textAlign: 'center',
+}
+
 });
 
 export default RegistroScreen;

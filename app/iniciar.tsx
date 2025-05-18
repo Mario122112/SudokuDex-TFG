@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet,Image} from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useRouter } from 'expo-router';
 import { auth, db } from '@/FireBaseconfig';
@@ -74,7 +74,13 @@ const LoginScreen = () => {
         <Text style={styles.textoSecundario}>Registrarse</Text>
       </TouchableOpacity>
 
-      
+      <TouchableOpacity onPress={() => router.push('/')} style={{ position: 'absolute', top: 20, left: 20,}}>
+        <Image
+          source={require('../assets/images/tfg/back.png')}
+          style={{ width: 34, height: 34 }}
+        />
+      </TouchableOpacity>
+
     </View>
   );
 };

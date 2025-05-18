@@ -455,7 +455,7 @@ export default function Diario() {
     const resetGame = () => {
         setBoard(inicializaTableroVacio());
         setScore(0);
-        setStartTime(new Date());
+        //setStartTime(new Date());
     };
 
     return (
@@ -470,7 +470,7 @@ export default function Diario() {
             <View style={styles.scoreContainer}>
                 <Text style={styles.scoreText}>Puntuación: {score}</Text>
                 <Image source={getBallImage(score)} style={styles.scoreIcon} />
-                <Text style={styles.timerText}>{formatTime(remainingTime)}</Text>
+                {/*<Text style={styles.timerText}>{formatTime(remainingTime)}</Text>*/}
             </View>
 
 
@@ -827,8 +827,7 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal>
-            {/* Modal de tiempo agotado */}
-            <Modal
+            {/* Modal de tiempo agotado <Modal
                 animationType="fade"
                 transparent={true}
                 visible={timeOutModalVisible}
@@ -881,7 +880,8 @@ export default function Diario() {
                         </TouchableOpacity>
                     </View>
                 </View>
-            </Modal>
+            </Modal>*/}
+            
             {           /* Modal rendirte*/}
             <Modal
                 animationType="fade"
