@@ -95,9 +95,7 @@ export default function Diario() {
     const [allPokemonNames, setAllPokemonNames] = useState<string[]>([]);
     const [pokemonSprites, setPokemonSprites] = useState<{ [name: string]: string }>({});
     const [victoryModalVisible, setVictoryModalVisible] = useState(false);
-    const [board, setBoard] = useState(
-        Array(3).fill(null).map(() => Array(3).fill(null))
-    );
+    const [board, setBoard] = useState(Array(3).fill(null).map(() => Array(3).fill(null)));
     const regions = ['Kanto', 'Johto', 'Hoenn', 'Sinnoh', 'Teselia', 'Kalos', 'Alola', 'Galar', 'Paldea', 'Hisui'];
     const [startTime, setStartTime] = useState<Date | null>(null);
     const [score, setScore] = useState(0);
@@ -106,6 +104,7 @@ export default function Diario() {
     const [surrenderModal, setsurrenderModal] = useState(false);
     const [infoVisible, setInfoVisible] = useState(false);
     const usuario = auth.currentUser;
+    const [spritesCargados, setSpritesCargados] = useState(false);
 
     useEffect(() => {
         if (!startTime) {
@@ -175,27 +174,27 @@ export default function Diario() {
     };
 
     const añadirPokemonADex = async (usuarioID: string, pokemonID: number) => {
-            const docRef = doc(db, "Pokedex", usuarioID);
-            try {
-                const snapshot = await getDoc(docRef);
-    
-                if (!snapshot.exists()) {
-                    
-                    await setDoc(docRef, {
-                        pokemons: [pokemonID]
-                    });
-                    console.log("Documento creado y Pokémon añadido:", pokemonID);
-                } else {
-                    
-                    await updateDoc(docRef, {
-                        pokemons: arrayUnion(pokemonID)
-                    });
-                    console.log("Pokémon añadido al array:", pokemonID);
-                }
-            } catch (error) {
-                console.error("Error al añadir Pokémon al documento Pokedex:", error);
+        const docRef = doc(db, "Pokedex", usuarioID);
+        try {
+            const snapshot = await getDoc(docRef);
+
+            if (!snapshot.exists()) {
+
+                await setDoc(docRef, {
+                    pokemons: [pokemonID]
+                });
+                console.log("Documento creado y Pokémon añadido:", pokemonID);
+            } else {
+
+                await updateDoc(docRef, {
+                    pokemons: arrayUnion(pokemonID)
+                });
+                console.log("Pokémon añadido al array:", pokemonID);
             }
-        };
+        } catch (error) {
+            console.error("Error al añadir Pokémon al documento Pokedex:", error);
+        }
+    };
 
     const abrirInfo = (etiqueta: string) => {
         // Normaliza para URL
@@ -298,6 +297,19 @@ export default function Diario() {
         const row = Math.floor(selectedIndex / 3);
         const col = selectedIndex % 3;
 
+        // Comprobar si el Pokémon ya está en el tablero
+        const estaRepetido = (pokemon: any) => {
+            return board.some(fila => fila.some(celda => celda?.id === pokemon.id));
+        };
+
+        if (estaRepetido(pokemon)) {
+            setErrorModal({
+                visible: true,
+                message: `Este Pokémon ya ha sido usado en otra casilla.`
+            });
+            return;
+        }
+
         const labelFila = leftLabels[row];
         const labelColumna = topLabels[col];
 
@@ -385,15 +397,12 @@ export default function Diario() {
         } else {
             // Casillas normales (ni Mega ni Gmax)
             if (tipoFila && tipoColumna && tipoFila !== tipoColumna) {
-                // Si ambos son tipos distintos, debe tener AMBOS
                 valido = tiposPokemon.includes(tipoFila) && tiposPokemon.includes(tipoColumna);
             } else {
-                // Si solo hay un tipo (porque la otra etiqueta es región u otra cosa), vale con que tenga uno
                 valido = cumpleConTipos(tiposPokemon);
             }
         }
 
-        // Validaciones extra por forma
         if (esFormaMega && !nombrePokemon.includes('-mega')) {
             valido = false;
         }
@@ -414,30 +423,25 @@ export default function Diario() {
 
         const now = new Date();
         const elapsedSeconds = Math.floor((now.getTime() - (startTime?.getTime() || 0)) / 1000);
-        const totalDuration = 120; // 2 minutos = 120 segundos
+        const totalDuration = 120;
         const remainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
-
-        // Calculamos el extra proporcional (por ejemplo: 90s => 1.5)
-        const timeMultiplier = remainingSeconds / 60; // para que 60s = 1.0, 120s = 2.0
-
-        // Puntos: 100 base + extra proporcional al tiempo
+        const timeMultiplier = remainingSeconds / 60;
         const basePoints = 100;
         const extraPoints = Math.floor(timeMultiplier * 100);
-
         const totalPoints = basePoints + extraPoints;
         const puntuacionFinal = score + totalPoints;
+
         setScore(puntuacionFinal);
 
         const newBoard = [...board];
         newBoard[row][col] = pokemon;
         setBoard(newBoard);
 
-        await añadirPokemonADex(usuario?.uid!, pokemon.id);;
+        await añadirPokemonADex(usuario?.uid!, pokemon.id);
 
         if (isBoardComplete()) {
             setVictoryModalVisible(true);
             await actualizarModoLibre(usuario?.uid!, puntuacionFinal);
-
         }
 
         const sprite = pokemon.sprites.front_default;
@@ -450,6 +454,7 @@ export default function Diario() {
 
         setModalVisible(false);
     };
+
 
 
     const resetGame = () => {
@@ -638,24 +643,31 @@ export default function Diario() {
                         placeholder="Nombre del Pokémon"
                         onChangeText={(text) => {
                             setQuery(text);
-                            const filtered = allPokemonNames.filter((name) =>
-                                name.toLowerCase().includes(text.toLowerCase())
-                            ).slice(0, 20); // cantidad de resultados al buscar
+                            setSpritesCargados(false); // empezar carga
+
+                            const filtered = allPokemonNames
+                                .filter((name) => name.toLowerCase().includes(text.toLowerCase()))
+                                .slice(0, 20);
+
                             setResults(filtered);
 
-                            filtered.forEach(async (name) => {
-                                if (!pokemonSprites[name]) {
-                                    try {
-                                        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
-                                        const data = await res.json();
-                                        setPokemonSprites((prev) => ({
-                                            ...prev,
-                                            [name]: data.sprites.front_default,
-                                        }));
-                                    } catch (e) {
-                                        console.error(`Error cargando sprite de ${name}`, e);
+                            Promise.all(
+                                filtered.map(async (name) => {
+                                    if (!pokemonSprites[name]) {
+                                        try {
+                                            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+                                            const data = await res.json();
+                                            setPokemonSprites((prev) => ({
+                                                ...prev,
+                                                [name]: data.sprites.front_default,
+                                            }));
+                                        } catch (e) {
+                                            console.error(`Error cargando sprite de ${name}`, e);
+                                        }
                                     }
-                                }
+                                })
+                            ).then(() => {
+                                setSpritesCargados(true); // solo cuando TODOS estén listos
                             });
                         }}
                         value={query}
@@ -683,33 +695,41 @@ export default function Diario() {
                         </Text>
                     </TouchableOpacity>
 
-                    {loading && <ActivityIndicator size="large" color={Colors.Botones_menu} />}
-
-                    <FlatList
-                        data={results}
-                        keyExtractor={(item) => item}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity
-                                onPress={async () => {
-                                    setLoading(true);
-                                    try {
-                                        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${item}`);
-                                        const data = await res.json();
-                                        handleSelect(data, regions, leftLabels, topLabels); // Ahora pasamos todos los parámetros necesarios
-                                    } catch (e) {
-                                        console.error('Error al cargar Pokémon', e);
-                                    }
-                                    setLoading(false);
-                                }}
-                                style={[styles.row, { alignItems: 'center', padding: 10 }]}
-                            >
-                                {pokemonSprites[item] && (
+                    {!spritesCargados ? (
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <ActivityIndicator size="large" color={Colors.Botones_menu} />
+                            <Text style={{ color: Colors.blanco, fontFamily: 'Pixel', marginTop: 10 }}>
+                                Cargando Pokémon...
+                            </Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={results}
+                            keyExtractor={(item) => item}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    onPress={async () => {
+                                        setLoading(true);
+                                        try {
+                                            const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${item}`);
+                                            const data = await res.json();
+                                            handleSelect(data, regions, leftLabels, topLabels);
+                                        } catch (e) {
+                                            console.error('Error al cargar Pokémon', e);
+                                        }
+                                        setLoading(false);
+                                    }}
+                                    style={[styles.row, { alignItems: 'center', padding: 10 }]}
+                                >
                                     <Image source={{ uri: pokemonSprites[item] }} style={{ width: 80, height: 80 }} />
-                                )}
-                                <Text style={styles.typeLabel2}>{String(item)}</Text>
-                            </TouchableOpacity>
-                        )}
-                    />
+                                    <Text style={styles.typeLabel2}>
+                                        {item.charAt(0).toUpperCase() + item.slice(1)}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    )}
+
                 </View>
             </Modal>
 
@@ -881,7 +901,7 @@ export default function Diario() {
                     </View>
                 </View>
             </Modal>*/}
-            
+
             {           /* Modal rendirte*/}
             <Modal
                 animationType="fade"
