@@ -1,73 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator, Alert, RootTagContext, ImageBackground } from 'react-native';
+import { tiposCombinables, regionesPosibles, typeStyles, abrirInfo } from './funciones_aux';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator,ImageBackground } from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
-import { Linking } from 'react-native';
 import seedrandom from 'seedrandom';
 import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/FireBaseconfig';
 import { getAuth } from 'firebase/auth';
 
-
-const tiposCombinables: { [key: string]: string[] } = {
-    'fuego': ['planta', 'bicho', 'hielo', 'dragon', 'electrico', 'lucha', 'fantasma', 'tierra', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero'],
-    'agua': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'lucha', 'siniestro', 'acero', 'hada'],
-    'planta': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
-    'bicho': ['electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
-    'hielo': ['agua', 'planta', 'bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'tierra', 'volador', 'psiquico', 'roca', 'siniestro', 'acero', 'hada'],
-    'tierra': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero'],
-    'roca': ['bicho', 'dragon', 'electrico', 'fuego', 'lucha', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
-    'acero': ['lucha', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'hada'],
-    'dragon': ['electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
-    'hada': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fantasma', 'planta', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'lucha'],
-    'lucha': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
-    'normal': ['electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'hada'],
-    'veneno': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'volador', 'lucha', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
-    'psiquico': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
-    'siniestro': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'psiquico', 'agua', 'lucha', 'acero', 'hada'],
-    'volador': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'normal', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada'],
-    'fantasma': ['bicho', 'dragon', 'electrico', 'lucha', 'fuego', 'planta', 'tierra', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'agua', 'siniestro', 'acero', 'hada'],
-    'electrico': ['bicho', 'dragon', 'lucha', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero', 'hada']
-};
-
-const regionesPosibles: { [key: string]: string[] } = {
-    'Kanto': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'acero'],
-    'Johto': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
-    'Hoenn': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
-    'Sinnoh': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
-    'Teselia': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero'],
-    'Kalos': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
-    'Alola': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
-    'Galar': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
-    'Paldea': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada'],
-    'Hisui': ['normal', 'roca', 'bicho', 'dragon', 'electrico', 'fuego', 'fantasma', 'planta', 'tierra', 'hielo', 'volador', 'veneno', 'lucha', 'agua', 'siniestro', 'acero', 'hada']
-};
-
-const typeStyles: Record<string, { backgroundColor: string; color: string }> = {
-    fuego: { backgroundColor: '#F08030', color: '#fff' },
-    planta: { backgroundColor: '#78C850', color: '#fff' },
-    agua: { backgroundColor: '#6890F0', color: '#fff' },
-    electrico: { backgroundColor: '#F8D030', color: '#000' },
-    hielo: { backgroundColor: '#98D8D8', color: '#000' },
-    lucha: { backgroundColor: '#C03028', color: '#fff' },
-    veneno: { backgroundColor: '#A040A0', color: '#fff' },
-    tierra: { backgroundColor: '#E0C068', color: '#000' },
-    volador: { backgroundColor: '#A890F0', color: '#000' },
-    psiquico: { backgroundColor: '#F85888', color: '#fff' },
-    bicho: { backgroundColor: '#A8B820', color: '#000' },
-    roca: { backgroundColor: '#B8A038', color: '#fff' },
-    fantasma: { backgroundColor: '#705898', color: '#fff' },
-    dragon: { backgroundColor: '#7038F8', color: '#fff' },
-    siniestro: { backgroundColor: '#705848', color: '#fff' },
-    acero: { backgroundColor: '#B8B8D0', color: '#000' },
-    hada: { backgroundColor: '#EE99AC', color: '#000' },
-    normal: { backgroundColor: '#A8A878', color: '#000' },
-    'g-max': { backgroundColor: '#920C2C', color: '#fff' },
-};
-
-const inicializaTableroVacio = () => {
-    return Array(3).fill(null).map(() => Array(3).fill(null));
-};
+const inicializaTableroVacio = () => {return Array(3).fill(null).map(() => Array(3).fill(null));};
 
 const getBallImage = (score: number) => {
     if (score >= 1000) {
@@ -173,13 +114,14 @@ export default function Diario() {
 
                     if (ultimaStr === hoyStr) {
                         console.log("Ya se ha jugado hoy. No se actualiza la racha.");
-                        // No cambiamos la racha, solo actualizamos la puntuación si es mayor
                     } else if (ultimaStr === ayerStr) {
                         nuevaRacha = rachaActual + 1;
+                    } else {
+                        nuevaRacha = 1;
+                        console.log("La racha se ha perdido. Se reinicia a 1.");
                     }
-                }
-                else {
-                    nuevaRacha = 1
+                } else {
+                    nuevaRacha = 1;
                 }
 
                 const updates: any = { fechaUltimoPuzzle: hoyStr, tablerosJugados: tablerosJugados + 1 };
@@ -234,58 +176,6 @@ export default function Diario() {
             console.error("Error al añadir Pokémon al documento Pokedex:", error);
         }
     };
-
-    const abrirInfo = (etiqueta: string) => {
-        // Normaliza para URL
-        const nombre = etiqueta.toLowerCase();
-
-        // Puedes personalizar cada ruta
-        const urls: Record<string, string> = {
-            // Tipos
-            fuego: 'https://bulbapedia.bulbagarden.net/wiki/Fire_(type)',
-            agua: 'https://bulbapedia.bulbagarden.net/wiki/Water_(type)',
-            planta: 'https://bulbapedia.bulbagarden.net/wiki/Grass_(type)',
-            volador: 'https://bulbapedia.bulbagarden.net/wiki/Flying_(type)',
-            normal: 'https://bulbapedia.bulbagarden.net/wiki/Normal_(type)',
-            lucha: 'https://bulbapedia.bulbagarden.net/wiki/Fighting_(type)',
-            veneno: 'https://bulbapedia.bulbagarden.net/wiki/Poison_(type)',
-            electrico: 'https://bulbapedia.bulbagarden.net/wiki/Electric_(type)',
-            tierra: 'https://bulbapedia.bulbagarden.net/wiki/Ground_(type)',
-            psiquico: 'https://bulbapedia.bulbagarden.net/wiki/Psychic_(type)',
-            roca: 'https://bulbapedia.bulbagarden.net/wiki/Rock_(type)',
-            hielo: 'https://bulbapedia.bulbagarden.net/wiki/Ice_(type)',
-            bicho: 'https://bulbapedia.bulbagarden.net/wiki/Bug_(type)',
-            dragon: 'https://bulbapedia.bulbagarden.net/wiki/Dragon_(type)',
-            fantasma: 'https://bulbapedia.bulbagarden.net/wiki/Ghost_(type)',
-            siniestro: 'https://bulbapedia.bulbagarden.net/wiki/Dark_(type)',
-            acero: 'https://bulbapedia.bulbagarden.net/wiki/Steel_(type)',
-            hada: 'https://bulbapedia.bulbagarden.net/wiki/Fairy_(type)',
-
-            // Regiones
-            kanto: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Kanto_Pokédex_number',
-            johto: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Johto_Pokédex_number',
-            hoen: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Hoenn_Pokédex_number_in_Generation_VI',
-            sinnoh: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Sinnoh_Pokédex_number',
-            teselia: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Unova_Pokédex_number_in_Pokémon_Black_2_and_White_2',
-            kalos: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Kalos_Pokédex_number',
-            alola: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Alola_Pokédex_number_in_Pokémon_Ultra_Sun_and_Ultra_Moon',
-            galar: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Galar_Pokédex_number',
-            paldea: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Paldea_Pokédex_number',
-            hisui: 'https://bulbapedia.bulbagarden.net/wiki/List_of_Pokémon_by_Hisui_Pokédex_number',
-
-            //especiales
-            mega: 'https://bulbapedia.bulbagarden.net/wiki/Mega_Evolution',
-            'g-max': 'https://bulbapedia.bulbagarden.net/wiki/Gigantamax'
-        };
-
-        const url = urls[nombre];
-        if (url) {
-            Linking.openURL(url);
-        } else {
-            console.warn('No hay URL para:', etiqueta);
-        }
-    };
-
 
     useEffect(() => {
         const fetchAllPokemon = async () => {
@@ -506,6 +396,143 @@ export default function Diario() {
         setBoard(inicializaTableroVacio());
         setScore(0);
         setStartTime(new Date());
+    };
+
+    const ficha_random = () => {
+        const especiales = ['Mega', 'G-max'];
+        const regionesBase = Object.keys(regionesPosibles);
+        const regionesProbabilidad = [
+            ...regionesBase,
+            'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega', 'Mega',
+            'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega'
+        ];
+        const tipos: string[] = Object.keys(tiposCombinables).map(t =>
+            t.charAt(0).toUpperCase() + t.slice(1)
+        );
+
+        const hoy = new Date();
+        const fechaSemilla = `${hoy.getFullYear()}-${hoy.getMonth() + 1}-${hoy.getDate()}`;
+        const rng = seedrandom(fechaSemilla);
+
+        const MAX_INTENTOS = 10;
+
+        for (let intento = 0; intento < MAX_INTENTOS; intento++) {
+            const copiaRegions = [...regionesProbabilidad];
+            const copiaTipos = [...tipos];
+            const yaIncluidos = new Set<string>();
+
+            const incluirRegion = rng() < 0.5;
+            const filasTienenRegiones = rng() < 0.5;
+
+            let topLabels: string[] = [];
+            let leftLabels: string[] = [];
+
+            const shuffleArray = (array: string[]) => {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(rng() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            };
+
+            const extraerEtiqueta = (arr: string[]): string => {
+                while (arr.length > 0) {
+                    const index = Math.floor(rng() * arr.length);
+                    const etiqueta = arr.splice(index, 1)[0];
+                    if (especiales.includes(etiqueta)) {
+                        if (yaIncluidos.has(etiqueta)) continue;
+                        yaIncluidos.add(etiqueta);
+                    }
+                    return etiqueta;
+                }
+                return '';
+            };
+
+            const esCombinacionValida = (fila: string, columna: string): boolean => {
+                if ((fila === 'Mega' && columna === 'G-max') || (fila === 'G-max' && columna === 'Mega')) {
+                    return false;
+                }
+
+                const filaLower = fila.toLowerCase();
+                const colLower = columna.toLowerCase();
+
+                const filaEsRegion = regionesPosibles[fila] !== undefined || especiales.includes(fila);
+                const colEsRegion = regionesPosibles[columna] !== undefined || especiales.includes(columna);
+
+                if (filaEsRegion && colEsRegion) return false;
+
+                if (filaEsRegion) return !especiales.includes(fila) || tiposCombinables[colLower] !== undefined;
+                if (colEsRegion) return !especiales.includes(columna) || tiposCombinables[filaLower] !== undefined;
+
+                return tiposCombinables[filaLower]?.includes(colLower) ?? false;
+            };
+
+            if (incluirRegion) {
+                if (filasTienenRegiones) {
+                    const left: string[] = [];
+
+                    const numRegiones = rng() < 0.5 ? 1 : 2;
+                    for (let i = 0; i < numRegiones; i++) {
+                        left.push(extraerEtiqueta(copiaRegions));
+                    }
+
+                    while (left.length < 3) {
+                        left.push(extraerEtiqueta(copiaTipos));
+                    }
+
+                    leftLabels = shuffleArray(left);
+
+                    while (topLabels.length < 3) {
+                        topLabels.push(extraerEtiqueta(copiaTipos));
+                    }
+                } else {
+                    const top: string[] = [];
+
+                    const numRegiones = rng() < 0.5 ? 1 : 2;
+                    for (let i = 0; i < numRegiones; i++) {
+                        top.push(extraerEtiqueta(copiaRegions));
+                    }
+
+                    while (top.length < 3) {
+                        top.push(extraerEtiqueta(copiaTipos));
+                    }
+
+                    topLabels = shuffleArray(top);
+
+                    while (leftLabels.length < 3) {
+                        leftLabels.push(extraerEtiqueta(copiaTipos));
+                    }
+                }
+            } else {
+                const todosLosTipos = Object.keys(tiposCombinables);
+                const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
+
+                const filasValidas = todosLosTipos.filter(tipo =>
+                    columnas.every(col => esCombinacionValida(tipo, col))
+                );
+
+                if (filasValidas.length < 3) continue;
+
+                const filas = shuffleArray(filasValidas).slice(0, 3);
+
+                topLabels = columnas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
+                leftLabels = filas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
+            }
+
+            const esCuadriculaValida = leftLabels.every(fila =>
+                topLabels.every(col => esCombinacionValida(fila, col))
+            );
+
+            if (esCuadriculaValida) {
+                return { top: topLabels, left: leftLabels };
+            }
+        }
+
+        console.error('No se pudo generar una cuadrícula válida tras varios intentos');
+        return {
+            top: ['Error1', 'Error2', 'Error3'],
+            left: ['Error1', 'Error2', 'Error3']
+        };
     };
 
     return (
@@ -1019,145 +1046,6 @@ export default function Diario() {
         </View>
     );
 }
-
-const ficha_random = () => {
-    const especiales = ['Mega', 'G-max'];
-    const regionesBase = Object.keys(regionesPosibles);
-    const regionesProbabilidad = [
-        ...regionesBase,
-        'Mega', 'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega', 'Mega',
-        'G-max', 'Mega', 'Mega', 'G-max', 'G-max', 'Mega'
-    ];
-    const tipos: string[] = Object.keys(tiposCombinables).map(t =>
-        t.charAt(0).toUpperCase() + t.slice(1)
-    );
-
-    const hoy = new Date();
-    const fechaSemilla = `${hoy.getFullYear()}-${hoy.getMonth() + 1}-${hoy.getDate()}`;
-    const rng = seedrandom(fechaSemilla);
-
-    const MAX_INTENTOS = 10;
-
-    for (let intento = 0; intento < MAX_INTENTOS; intento++) {
-        const copiaRegions = [...regionesProbabilidad];
-        const copiaTipos = [...tipos];
-        const yaIncluidos = new Set<string>();
-
-        const incluirRegion = rng() < 0.5;
-        const filasTienenRegiones = rng() < 0.5;
-
-        let topLabels: string[] = [];
-        let leftLabels: string[] = [];
-
-        const shuffleArray = (array: string[]) => {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(rng() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        };
-
-        const extraerEtiqueta = (arr: string[]): string => {
-            while (arr.length > 0) {
-                const index = Math.floor(rng() * arr.length);
-                const etiqueta = arr.splice(index, 1)[0];
-                if (especiales.includes(etiqueta)) {
-                    if (yaIncluidos.has(etiqueta)) continue;
-                    yaIncluidos.add(etiqueta);
-                }
-                return etiqueta;
-            }
-            return '';
-        };
-
-        const esCombinacionValida = (fila: string, columna: string): boolean => {
-            if ((fila === 'Mega' && columna === 'G-max') || (fila === 'G-max' && columna === 'Mega')) {
-                return false;
-            }
-
-            const filaLower = fila.toLowerCase();
-            const colLower = columna.toLowerCase();
-
-            const filaEsRegion = regionesPosibles[fila] !== undefined || especiales.includes(fila);
-            const colEsRegion = regionesPosibles[columna] !== undefined || especiales.includes(columna);
-
-            if (filaEsRegion && colEsRegion) return false;
-
-            if (filaEsRegion) return !especiales.includes(fila) || tiposCombinables[colLower] !== undefined;
-            if (colEsRegion) return !especiales.includes(columna) || tiposCombinables[filaLower] !== undefined;
-
-            return tiposCombinables[filaLower]?.includes(colLower) ?? false;
-        };
-
-        if (incluirRegion) {
-            if (filasTienenRegiones) {
-                const left: string[] = [];
-
-                const numRegiones = rng() < 0.5 ? 1 : 2;
-                for (let i = 0; i < numRegiones; i++) {
-                    left.push(extraerEtiqueta(copiaRegions));
-                }
-
-                while (left.length < 3) {
-                    left.push(extraerEtiqueta(copiaTipos));
-                }
-
-                leftLabels = shuffleArray(left);
-
-                while (topLabels.length < 3) {
-                    topLabels.push(extraerEtiqueta(copiaTipos));
-                }
-            } else {
-                const top: string[] = [];
-
-                const numRegiones = rng() < 0.5 ? 1 : 2;
-                for (let i = 0; i < numRegiones; i++) {
-                    top.push(extraerEtiqueta(copiaRegions));
-                }
-
-                while (top.length < 3) {
-                    top.push(extraerEtiqueta(copiaTipos));
-                }
-
-                topLabels = shuffleArray(top);
-
-                while (leftLabels.length < 3) {
-                    leftLabels.push(extraerEtiqueta(copiaTipos));
-                }
-            }
-        } else {
-            const todosLosTipos = Object.keys(tiposCombinables);
-            const columnas = shuffleArray([...todosLosTipos]).slice(0, 3);
-
-            const filasValidas = todosLosTipos.filter(tipo =>
-                columnas.every(col => esCombinacionValida(tipo, col))
-            );
-
-            if (filasValidas.length < 3) continue;
-
-            const filas = shuffleArray(filasValidas).slice(0, 3);
-
-            topLabels = columnas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
-            leftLabels = filas.map(t => t.charAt(0).toUpperCase() + t.slice(1));
-        }
-
-        const esCuadriculaValida = leftLabels.every(fila =>
-            topLabels.every(col => esCombinacionValida(fila, col))
-        );
-
-        if (esCuadriculaValida) {
-            return { top: topLabels, left: leftLabels };
-        }
-    }
-
-    console.error('No se pudo generar una cuadrícula válida tras varios intentos');
-    return {
-        top: ['Error1', 'Error2', 'Error3'],
-        left: ['Error1', 'Error2', 'Error3']
-    };
-};
-
-
 
 
 const styles = StyleSheet.create({

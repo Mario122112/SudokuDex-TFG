@@ -206,7 +206,7 @@ const PokedexScreen = () => {
         const nombreRegion = valorFiltro.toLowerCase();
 
         // Lógica para las regiones y formas regionales
-        if (nombreRegion === 'kanto') return p.id <= 151 || p.name.includes('kanto');
+        if (nombreRegion === 'kanto') return p.id <= 151;
         if (nombreRegion === 'johto') return (p.id > 151 && p.id <= 251);
         if (nombreRegion === 'hoenn') return (p.id > 251 && p.id <= 386);
         if (nombreRegion === 'sinnoh') return (p.id > 386 && p.id <= 493);
@@ -427,6 +427,7 @@ const PokedexScreen = () => {
                   contentContainerStyle={styles.pokemonGrid}
                   renderItem={({ item }) => {
                     const estaDesbloqueado = pokemonsDesbloqueados.includes(item.id);
+                    if (!item.sprites.front_default) return null;
                     return (
                       <TouchableOpacity
                         disabled={!estaDesbloqueado}
@@ -437,7 +438,7 @@ const PokedexScreen = () => {
                           source={{ uri: item.sprites.front_default }}
                           style={{ width: 60, height: 60, tintColor: estaDesbloqueado ? undefined : Colors.Botones_menu }}
                         />
-                        
+
                       </TouchableOpacity>
                     );
                   }}
