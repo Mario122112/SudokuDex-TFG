@@ -363,6 +363,7 @@ export default function Diario() {
 
         if (isBoardComplete()) {
             setBoardCompletedModalVisible(true);
+            
             const nuevoContador = contador + 1;
             setContador(nuevoContador);
             actualizarRecordCarrusel(nuevoContador, newScore);
