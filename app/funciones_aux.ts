@@ -1,4 +1,5 @@
 import { Linking } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator,ImageBackground} from 'react-native';
 
 export const tiposCombinables: { [key: string]: string[] } = {
     'fuego': ['planta', 'bicho', 'hielo', 'dragon', 'electrico', 'lucha', 'fantasma', 'tierra', 'normal', 'volador', 'veneno', 'psiquico', 'roca', 'agua', 'siniestro', 'acero'],
@@ -106,3 +107,34 @@ export const abrirInfo = (etiqueta: string) => {
             console.warn('No hay URL para:', etiqueta);
         }
     };
+
+    
+    export const getBallImage = (score: number) => {
+        if (score >= 1500) {
+            return require('../assets/images/tfg/masterball.png');
+        } else if (score >= 900) {
+            return require('../assets/images/tfg/ultraball.png');
+        } else if (score >= 500) {
+            return require('../assets/images/tfg/superball.png');
+        } else {
+            return require('../assets/images/tfg/pokeball.png');
+        }
+    };
+    export const getBallImageCarrusel = (score: number) => {
+        if (score >= 6000) {
+            return require('../assets/images/tfg/masterball.png');
+        }else if (score >= 4500) {
+            return require('../assets/images/tfg/heavyball.png');
+        }else if (score >= 3500) {
+            return require('../assets/images/tfg/quickball.png');
+        }else if (score >= 2500) {
+            return require('../assets/images/tfg/duskball.png');
+        } else if (score >= 1500) {
+            return require('../assets/images/tfg/safariball.png');
+        }else if (score >= 500) {
+            return require('../assets/images/tfg/superball.png');
+        }else {
+            return require('../assets/images/tfg/pokeball.png');
+        }
+    };
+

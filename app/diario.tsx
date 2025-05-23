@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { tiposCombinables, regionesPosibles, typeStyles, abrirInfo } from './funciones_aux';
+import { tiposCombinables, regionesPosibles, typeStyles, abrirInfo,getBallImage } from './funciones_aux';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator,ImageBackground } from 'react-native';
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
@@ -10,17 +10,6 @@ import { getAuth } from 'firebase/auth';
 
 const inicializaTableroVacio = () => {return Array(3).fill(null).map(() => Array(3).fill(null));};
 
-const getBallImage = (score: number) => {
-    if (score >= 1000) {
-        return require('../assets/images/tfg/masterball.png');
-    } else if (score >= 700) {
-        return require('../assets/images/tfg/ultraball.png');
-    } else if (score >= 400) {
-        return require('../assets/images/tfg/superball.png');
-    } else {
-        return require('../assets/images/tfg/pokeball.png');
-    }
-};
 
 export default function Diario() {
     const navigation = useNavigation();
@@ -48,6 +37,7 @@ export default function Diario() {
     const usuario = auth.currentUser;
     const uid = usuario?.uid;
     const [spritesCargados, setSpritesCargados] = useState(false);
+    
 
     useEffect(() => {
         if (!startTime) {
@@ -223,7 +213,6 @@ export default function Diario() {
     ) => {
         if (selectedIndex === null) return;
 
-         // Comprobar si el Pokémon ya está en el tablero
         const estaRepetido = (pokemon: any) => {
             return board.some(fila => fila.some(celda => celda?.id === pokemon.id));
         };
@@ -259,6 +248,11 @@ export default function Diario() {
 
         const sufijosMega: string[] = ['-mega', '-gmax'];
 
+        const hisuiPokemons = [
+            'kleavor', 'ursaluna', 'basculegion', 'overqwil', 'sneasler',
+            'wyrdeer'
+        ];
+
         const formatLabel = (label: string) =>
             label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
 
@@ -285,7 +279,6 @@ export default function Diario() {
             'generation-vii': 'Alola',
             'generation-viii': 'Galar',
             'generation-ix': 'Paldea',
-            'generation-x': 'Hisui',
         };
 
         const regionPokemon = genToRegion[generation];
@@ -293,8 +286,6 @@ export default function Diario() {
         const nombrePokemon = pokemon.name.toLowerCase();
 
         let valido = false;
-
-        const esMegaO_Gmax = sufijosMega.some((sufijo: string) => nombrePokemon.includes(sufijo));
 
         const cumpleConTipos = (tipos: string[]) => {
             return tipos.some((tipo: string) => tipo === tipoFila || tipo === tipoColumna);
@@ -304,18 +295,17 @@ export default function Diario() {
         const esFormaGmax = formattedFila === 'G-max' || formattedColumna === 'G-max';
 
         if (filaEsRegion && columnaEsRegion) {
-            valido = false; // No se permiten combinaciones de dos regiones
+            valido = false;
         } else if (filaEsRegion || columnaEsRegion) {
             const tipo = filaEsRegion ? tipoColumna : tipoFila;
             const region = filaEsRegion ? formattedFila : formattedColumna;
 
             const sufijoEsperado = sufijosRegionales[region];
             const esFormaRegional = sufijoEsperado && nombrePokemon.includes(sufijoEsperado);
-            const esNativoDeRegion = regionPokemon === region;
+            const esNativoDeRegion = regionPokemon === region || (region === 'Hisui' && hisuiPokemons.includes(nombrePokemon));
 
             valido = tiposPokemon.includes(tipo) && (esFormaRegional || esNativoDeRegion);
         } else if (esFormaMega || esFormaGmax) {
-            // Casillas especiales que piden Mega o Gmax
             if (esFormaMega && nombrePokemon.includes('-mega')) {
                 valido = cumpleConTipos(tiposPokemon);
             } else if (esFormaGmax && nombrePokemon.includes('-gmax')) {
@@ -324,17 +314,13 @@ export default function Diario() {
                 valido = false;
             }
         } else {
-            // Casillas normales (ni Mega ni Gmax)
             if (tipoFila && tipoColumna && tipoFila !== tipoColumna) {
-                // Si ambos son tipos distintos, debe tener AMBOS
                 valido = tiposPokemon.includes(tipoFila) && tiposPokemon.includes(tipoColumna);
             } else {
-                // Si solo hay un tipo (porque la otra etiqueta es región u otra cosa), vale con que tenga uno
                 valido = cumpleConTipos(tiposPokemon);
             }
         }
 
-        // Validaciones extra por forma
         if (esFormaMega && !nombrePokemon.includes('-mega')) {
             valido = false;
         }
@@ -355,16 +341,11 @@ export default function Diario() {
 
         const now = new Date();
         const elapsedSeconds = Math.floor((now.getTime() - (startTime?.getTime() || 0)) / 1000);
-        const totalDuration = 120; // 2 minutos = 120 segundos
+        const totalDuration = 120;
         const remainingSeconds = Math.max(0, totalDuration - elapsedSeconds);
-
-        // Calculamos el extra proporcional (por ejemplo: 90s => 1.5)
-        const timeMultiplier = remainingSeconds / 60; // para que 60s = 1.0, 120s = 2.0
-
-        // Puntos: 100 base + extra proporcional al tiempo
+        const timeMultiplier = remainingSeconds / 60;
         const basePoints = 100;
         const extraPoints = Math.floor(timeMultiplier * 100);
-
         const totalPoints = basePoints + extraPoints;
         const puntuacionFinal = score + totalPoints;
         setScore(puntuacionFinal);
@@ -377,7 +358,7 @@ export default function Diario() {
 
         if (isBoardComplete()) {
             setVictoryModalVisible(true);
-            await actualizarRachaDiaria(usuario?.uid!, puntuacionFinal)
+            await actualizarRachaDiaria(usuario?.uid!, puntuacionFinal);
         }
 
         const sprite = pokemon.sprites.front_default;
@@ -390,6 +371,7 @@ export default function Diario() {
 
         setModalVisible(false);
     };
+
 
 
     const resetGame = () => {

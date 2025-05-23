@@ -42,7 +42,6 @@ const RegistroScreen = () => {
         puntuacionMaxCarrusel: 0,
         puntuacionMaxLibre: 0,
         tablerosJugados: 0,
-        pokemonDesbloqueados: [],
       });
 
       router.replace('/');

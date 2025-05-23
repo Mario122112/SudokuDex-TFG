@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator,ImageBackground } from 'react-native';
-import { tiposCombinables, regionesPosibles, typeStyles, abrirInfo } from './funciones_aux';
+import { tiposCombinables, regionesPosibles, typeStyles, abrirInfo,getBallImage } from './funciones_aux';
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { arrayUnion, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
@@ -8,18 +8,6 @@ import { auth, db } from '@/FireBaseconfig';
 
 
 const inicializaTableroVacio = () => {return Array(3).fill(null).map(() => Array(3).fill(null));};
-
-const getBallImage = (score: number) => {
-    if (score >= 1000) {
-        return require('../assets/images/tfg/masterball.png');
-    } else if (score >= 700) {
-        return require('../assets/images/tfg/ultraball.png');
-    } else if (score >= 400) {
-        return require('../assets/images/tfg/superball.png');
-    } else {
-        return require('../assets/images/tfg/pokeball.png');
-    }
-};
 
 export default function Diario() {
     const navigation = useNavigation();
@@ -174,10 +162,6 @@ export default function Diario() {
     ) => {
         if (selectedIndex === null) return;
 
-        const row = Math.floor(selectedIndex / 3);
-        const col = selectedIndex % 3;
-
-        // Comprobar si el Pokémon ya está en el tablero
         const estaRepetido = (pokemon: any) => {
             return board.some(fila => fila.some(celda => celda?.id === pokemon.id));
         };
@@ -189,6 +173,9 @@ export default function Diario() {
             });
             return;
         }
+
+        const row = Math.floor(selectedIndex / 3);
+        const col = selectedIndex % 3;
 
         const labelFila = leftLabels[row];
         const labelColumna = topLabels[col];
@@ -209,6 +196,11 @@ export default function Diario() {
         };
 
         const sufijosMega: string[] = ['-mega', '-gmax'];
+
+        const hisuiPokemons = [
+            'kleavor', 'ursaluna', 'basculegion', 'overqwil', 'sneasler',
+            'wyrdeer'
+        ];
 
         const formatLabel = (label: string) =>
             label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
@@ -236,7 +228,6 @@ export default function Diario() {
             'generation-vii': 'Alola',
             'generation-viii': 'Galar',
             'generation-ix': 'Paldea',
-            'generation-x': 'Hisui',
         };
 
         const regionPokemon = genToRegion[generation];
@@ -253,18 +244,17 @@ export default function Diario() {
         const esFormaGmax = formattedFila === 'G-max' || formattedColumna === 'G-max';
 
         if (filaEsRegion && columnaEsRegion) {
-            valido = false; // No se permiten combinaciones de dos regiones
+            valido = false;
         } else if (filaEsRegion || columnaEsRegion) {
             const tipo = filaEsRegion ? tipoColumna : tipoFila;
             const region = filaEsRegion ? formattedFila : formattedColumna;
 
             const sufijoEsperado = sufijosRegionales[region];
             const esFormaRegional = sufijoEsperado && nombrePokemon.includes(sufijoEsperado);
-            const esNativoDeRegion = regionPokemon === region;
+            const esNativoDeRegion = regionPokemon === region || (region === 'Hisui' && hisuiPokemons.includes(nombrePokemon));
 
             valido = tiposPokemon.includes(tipo) && (esFormaRegional || esNativoDeRegion);
         } else if (esFormaMega || esFormaGmax) {
-            // Casillas especiales que piden Mega o Gmax
             if (esFormaMega && nombrePokemon.includes('-mega')) {
                 valido = cumpleConTipos(tiposPokemon);
             } else if (esFormaGmax && nombrePokemon.includes('-gmax')) {
@@ -273,7 +263,6 @@ export default function Diario() {
                 valido = false;
             }
         } else {
-            // Casillas normales (ni Mega ni Gmax)
             if (tipoFila && tipoColumna && tipoFila !== tipoColumna) {
                 valido = tiposPokemon.includes(tipoFila) && tiposPokemon.includes(tipoColumna);
             } else {
@@ -308,7 +297,6 @@ export default function Diario() {
         const extraPoints = Math.floor(timeMultiplier * 100);
         const totalPoints = basePoints + extraPoints;
         const puntuacionFinal = score + totalPoints;
-
         setScore(puntuacionFinal);
 
         const newBoard = [...board];
@@ -624,7 +612,7 @@ export default function Diario() {
             </View>
 
             <TouchableOpacity
-                style={styles.surrenderButton} onPress={() => { resetGame(); setsurrenderModal(true); }}>
+                style={styles.surrenderButton} onPress={() => {setsurrenderModal(true); }}>
                 <Text style={styles.surrenderText}>Rendirse</Text>
             </TouchableOpacity>
 
@@ -962,6 +950,7 @@ export default function Diario() {
                             <TouchableOpacity
                                 onPress={() => {
                                     setsurrenderModal(false);
+                                    resetGame();
                                     navigation.goBack(); // Aquí va la acción de rendirse
                                 }}
                                 style={{

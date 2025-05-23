@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TextInput, FlatList, ActivityIndicator,ImageBackground} from 'react-native';
-import { tiposCombinables, regionesPosibles, typeStyles, abrirInfo } from './funciones_aux';
+import { tiposCombinables, regionesPosibles, typeStyles, abrirInfo, getBallImageCarrusel } from './funciones_aux';
 import { Colors } from '@/themes/Colors';
 import { useNavigation } from '@react-navigation/native';
 import { getDoc, doc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
@@ -10,18 +10,6 @@ import { auth, db } from '@/FireBaseconfig';
 
 const inicializaTableroVacio = () => {
     return Array(3).fill(null).map(() => Array(3).fill(null));
-};
-
-const getBallImage = (score: number) => {
-    if (score >= 1000) {
-        return require('../assets/images/tfg/masterball.png');
-    } else if (score >= 700) {
-        return require('../assets/images/tfg/ultraball.png');
-    } else if (score >= 400) {
-        return require('../assets/images/tfg/superball.png');
-    } else {
-        return require('../assets/images/tfg/pokeball.png');
-    }
 };
 
 export default function Diario() {
@@ -242,6 +230,11 @@ export default function Diario() {
             'Paldea': '-paldea',
         };
 
+        const hisuiPokemons = [
+            'kleavor', 'ursaluna', 'basculegion', 'overqwil', 'sneasler',
+            'wyrdeer'
+        ];
+
         const formatLabel = (label: string) =>
             label.charAt(0).toUpperCase() + label.slice(1).toLowerCase();
 
@@ -292,7 +285,8 @@ export default function Diario() {
 
             const sufijoEsperado = sufijosRegionales[region];
             const esFormaRegional = sufijoEsperado && nombrePokemon.includes(sufijoEsperado);
-            const esNativoDeRegion = regionPokemon === region;
+            const esNativoDeRegion = regionPokemon === region || (region === 'Hisui' && hisuiPokemons.includes(nombrePokemon));
+            
 
             valido = tiposPokemon.includes(tipo) && (esFormaRegional || esNativoDeRegion);
         } else if (esFormaMega || esFormaGmax) {
@@ -513,6 +507,16 @@ export default function Diario() {
         return { top: topLabels, left: leftLabels };
     };
 
+    const ballImage = getBallImageCarrusel(score);
+
+    
+    let imageSize = 60;
+
+    if (score >= 1500 && score < 6000) {
+        
+        imageSize = 45;
+    } 
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -524,7 +528,10 @@ export default function Diario() {
 
             <View style={[styles.scoreContainer]}>
                 <Text style={[styles.scoreText, { top: -40 }]}>Puntuación: {score}</Text>
-                <Image source={getBallImage(score)} style={[styles.scoreIcon, { top: -40 }]} />
+                <Image
+                    source={ballImage}
+                    style={[styles.scoreIcon, { top: -40, width: imageSize, height: imageSize }]}
+                />
                 <Text style={[styles.timerText, { top: -26 }]}>{formatTime(remainingTime)}</Text>
                 <Text style={[styles.timerText, { top: 35, marginRight: 146 }]}>Racha Tableros: {contador}</Text>
             </View>
@@ -686,7 +693,6 @@ export default function Diario() {
                 <Text style={styles.surrenderText}>Rendirse</Text>
             </TouchableOpacity>
 
-            {/* Modal de búsqueda */}
             {/* Modal de búsqueda */}
             <Modal visible={modalVisible} animationType="slide">
                 <View style={{ flex: 1, backgroundColor: Colors.Fondo, padding: 20 }}>
@@ -1278,7 +1284,7 @@ const styles = StyleSheet.create({
     },
     pikachuContainer: {
         position: 'absolute',
-        top: 20, // ajusta según lo que necesites
+        top: 20, 
         right: 20,
     },
     pikachu: {

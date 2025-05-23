@@ -278,6 +278,10 @@ const PokedexScreen = () => {
     return tipo.charAt(0).toUpperCase() + tipo.slice(1);
   };
 
+  const pokemonsFiltradosSinDuplicados = Array.from(
+    new Map(pokemonsFiltrados.map(p => [p.name, p])).values()
+  ).filter(p => p.sprites?.front_default);
+
   
   return (
     <View style={styles.container}>
@@ -421,8 +425,8 @@ const PokedexScreen = () => {
                 <Text style={styles.infoText}>Cargando pokemons desbloqueados...</Text>
               ) : (
                 <FlatList
-                  data={pokemonsFiltrados}
-                  keyExtractor={(item, index) => `${item.id}-${index}`}
+                  data={pokemonsFiltradosSinDuplicados}
+                  keyExtractor={(item) => item.name}
                   numColumns={5}
                   contentContainerStyle={styles.pokemonGrid}
                   renderItem={({ item }) => {
@@ -558,8 +562,7 @@ const styles = StyleSheet.create({
     marginLeft: -50,
   },
   pokemonGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
     justifyContent: 'center',
     marginTop:20,
     paddingBottom:30,
