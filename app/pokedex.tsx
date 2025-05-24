@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pixel',
     marginVertical: 25,
     fontSize: 23,
-    marginLeft: -20,
+    textAlign: 'center',
   },
   fullLine: {
     height: 2,

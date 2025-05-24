@@ -246,7 +246,6 @@ export default function Diario() {
             'Paldea': '-paldea',
         };
 
-        const sufijosMega: string[] = ['-mega', '-gmax'];
 
         const hisuiPokemons = [
             'kleavor', 'ursaluna', 'basculegion', 'overqwil', 'sneasler',
@@ -748,9 +747,9 @@ export default function Diario() {
                     </TouchableOpacity>
 
                     {!spritesCargados ? (
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                             <ActivityIndicator size="large" color={Colors.Botones_menu} />
-                            <Text style={{ color: Colors.blanco, fontFamily: 'Pixel', marginTop: 10 }}>
+                            <Text style={{ color: Colors.blanco, fontFamily: 'Pixel', marginTop: 10, fontSize: 20 }}>
                                 Cargando Pokémon...
                             </Text>
                         </View>

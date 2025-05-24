@@ -508,12 +508,9 @@ export default function Diario() {
     };
 
     const ballImage = getBallImageCarrusel(score);
-
-    
     let imageSize = 60;
 
     if (score >= 1500 && score < 6000) {
-        
         imageSize = 45;
     } 
 
