@@ -56,7 +56,7 @@ export default function Diario() {
             });
         }, 1000);
 
-        return () => clearInterval(interval); // Limpiar al desmontar
+        return () => clearInterval(interval); 
     }, []);
 
     /**useEffect(() => {

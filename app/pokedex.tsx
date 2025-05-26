@@ -372,10 +372,14 @@ const PokedexScreen = () => {
                   <TouchableOpacity
                     key={r}
                     onPress={() => setValorFiltro(r.toLowerCase())}
-                    style={styles.filtroBoton}
+                    style={[
+                      styles.filtroBoton,
+                      valorFiltro === r.toLowerCase() ? { backgroundColor: Colors.Iconos } : null
+                    ]}
                   >
                     <Text style={styles.filtroTexto}>{r}</Text>
                   </TouchableOpacity>
+
                 ))}
               </ScrollView>
             )}
@@ -386,15 +390,19 @@ const PokedexScreen = () => {
                 showsHorizontalScrollIndicator={false}
                 style={{ marginBottom: 10, maxHeight: 60,height:70,left:-10,top: 5 }}
                 contentContainerStyle={{ alignItems: 'center',paddingLeft: 10}}
-              >
-                {tipos.map((t: Tipo) => (
-                  <TouchableOpacity
-                    key={t}
-                    onPress={() => setValorFiltro(t)}
-                    style={styles.filtroBoton}
-                  >
-                    <Text style={styles.filtroTexto}>{tiposTraduccion[t]}</Text>
-                  </TouchableOpacity>
+                >
+                  {tipos.map((t: Tipo) => (
+                    <TouchableOpacity
+                      key={t}
+                      onPress={() => setValorFiltro(t)}
+                      style={[
+                        styles.filtroBoton,
+                        valorFiltro === t ? { backgroundColor: Colors.Iconos } : null
+                      ]}
+                    >
+                      <Text style={styles.filtroTexto}>{tiposTraduccion[t]}</Text>
+                    </TouchableOpacity>
+
                 ))}
               </ScrollView>
             )}
@@ -411,10 +419,14 @@ const PokedexScreen = () => {
                   <TouchableOpacity
                     key={e}
                     onPress={() => setValorFiltro(e)}
-                    style={styles.filtroBoton}
+                    style={[
+                      styles.filtroBoton,
+                      valorFiltro === e ? { backgroundColor: Colors.Iconos } : null
+                    ]}
                   >
                     <Text style={styles.filtroTexto}>{e}</Text>
                   </TouchableOpacity>
+
                 ))}
               </ScrollView>
             )}
@@ -422,7 +434,7 @@ const PokedexScreen = () => {
 
             {/* Sprites */}
               {loadingPokemons ? (
-                <Text style={styles.infoText}>Cargando pokemons desbloqueados...</Text>
+                <Text style={styles.infoTextcentrado}>Cargando pokemons desbloqueados...</Text>
               ) : (
                 <FlatList
                   data={pokemonsFiltradosSinDuplicados}
@@ -448,7 +460,7 @@ const PokedexScreen = () => {
                   }}
                   onEndReached={fetchPokemons}
                   onEndReachedThreshold={0.5}
-                  ListFooterComponent={loading ? <Text style={styles.infoText}>Cargando más...</Text> : null}
+                  ListFooterComponent={loading ? <Text style={styles.infoTextcentrado}>Cargando más...</Text> : null}
                 />
               )}
           </>
@@ -548,6 +560,12 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   infoText: {
+    color: Colors.blanco,
+    fontFamily: 'Pixel',
+    marginVertical: 25,
+    fontSize: 23,
+  },
+  infoTextcentrado: {
     color: Colors.blanco,
     fontFamily: 'Pixel',
     marginVertical: 25,
