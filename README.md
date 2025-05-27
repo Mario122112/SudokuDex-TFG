@@ -48,3 +48,10 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+
+## Licencia
+
+[![Licencia CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.es)  
+Este proyecto está licenciado bajo la Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional.  
+Consulta el archivo [LICENSE](./LICENSE) para más detalles.
