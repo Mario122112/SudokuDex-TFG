@@ -18,13 +18,18 @@ const RegistroScreen = () => {
   const handleRegister = async () => {
     setErrorMensaje(''); // Limpia errores anteriores
 
+    if (!nombre || !email || !contrasena || !confirmar) {
+      setErrorMensaje("Por favor, completa todos los campos.");
+      return;
+    }
+
     if (nombre.length > 10) {
       setErrorMensaje("El nombre de usuario no puede tener más de 10 caracteres.");
       return;
     }
 
-    if (!email || !contrasena || !confirmar || contrasena !== confirmar) {
-      setErrorMensaje("Por favor, completa todos los campos correctamente.");
+    if (contrasena !== confirmar) {
+      setErrorMensaje("Las contraseñas no coinciden.");
       return;
     }
 
@@ -45,9 +50,29 @@ const RegistroScreen = () => {
       });
 
       router.replace('/');
-    } catch (error) {
-      console.error("Error registrando:", error);
-      setErrorMensaje("Hubo un problema al registrar el usuario.");
+    } catch (error: any) {
+      
+
+      let mensaje = "Error desconocido. Inténtalo de nuevo.";
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          mensaje = "Este correo ya está en uso.";
+          break;
+        case 'auth/invalid-email':
+          mensaje = "El correo electrónico no es válido.";
+          break;
+        case 'auth/weak-password':
+          mensaje = "La contraseña es demasiado débil. Usa al menos 6 caracteres.";
+          break;
+        case 'auth/missing-password':
+          mensaje = "Por favor, introduce una contraseña.";
+          break;
+        default:
+          mensaje = "Ocurrió un error al registrar. Intenta de nuevo.";
+          break;
+      }
+
+      setErrorMensaje(mensaje);
     }
   };
 
