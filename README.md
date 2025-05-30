@@ -53,5 +53,5 @@ Join our community of developers creating universal apps.
 ## Licencia
 
 [![Licencia CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/deed.es)  
-Este proyecto está licenciado bajo la Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional.  
+Este proyecto está bajo la Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional.  
 Consulta el archivo [LICENSE](./LICENSE) para más detalles.
