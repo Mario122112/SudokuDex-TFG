@@ -8,10 +8,16 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 <!-- Badges: inicio -->
 <div align="center">
-  [![React Native](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=%2361DAFB)]()
-  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)]()
-  [![License CC‑BY‑SA 4.0](https://img.shields.io/badge/License-CC%20BY‑SA%204.0-blue.svg)]()
-  [![TFG Nota:10](https://img.shields.io/badge/TFG-10‑sobresaliente-brightgreen?style=flat-square)]()
+  <a href="https://reactnative.dev/">
+    <img src="https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=%2361DAFB" alt="React Native">
+  </a>
+  <a href="https://www.typescriptlang.org/">
+    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript"> <!-- × cambio a flat-square -->
+  </a>
+  <a href="https://creativecommons.org/licenses/by-sa/4.0/">
+    <img src="https://img.shields.io/badge/License-CC%20BY‑SA%204.0-blue?style=for-the-badge" alt="License CC-BY-SA 4.0">
+  </a>
+  <img src="https://img.shields.io/badge/TFG-Nota%3A%2010-brightgreen?style=flat-square" alt="Nota TFG 10">
 </div>
 <!-- Badges: fin -->
 
