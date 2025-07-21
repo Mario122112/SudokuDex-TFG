@@ -2,6 +2,44 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+# SudokuDex — App de Sudoku multiplataforma 🎯
+
+## Acerca del proyecto
+
+*SudokuDex es una aplicación móvil desarrollada como parte de tu Trabajo Fin de Grado (nota: ¡10!) que permite a los usuarios jugar y aprender sobre sudokus de forma dinámica e intuitiva. Entre sus puntos destacados:
+
+Tecnologías:
+
+React Native/Expo para desarrollo cross‑platform (iOS, Android y Web).
+
+TypeScript, ofreciendo tipado estático en todo el proyecto.
+
+React Hooks y file-based routing (en la carpeta app/) para una estructura modular y escalable.
+
+Firebase como backend/serverless para autenticación (si lo estás usando) y almacenamiento de progresos.
+
+Librerías UI como React Native Paper o similares (ajusta según tus dependencias reales).
+
+Principales funcionalidades:
+
+Generación y resolución de sudokus.
+
+Registro de partidas, niveles y estadísticas de usuario.
+
+Interfaz intuitiva, responsive y usable en distintos dispositivos.
+
+Posible integración con temas oscuros personalizados (themes/).
+
+Objetivos académicos:
+
+Demostrar control sobre desarrollo móvil multiplataforma.
+
+Implementar buenas prácticas de TypeScript y patrones de diseño React.
+
+Documentar correctamente todo el proceso, tanto técnico como de usuario.
+
+Con esta visión general, quien vea el proyecto comprenderá de inmediato su propósito, stack tecnológico y valor académico antes de ver cómo instalarlo y ejecutarlo.*
+
 ## Get started
 
 1. Install dependencies
