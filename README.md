@@ -6,39 +6,56 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Acerca del proyecto
 
-*SudokuDex es una aplicación móvil desarrollada como parte de tu Trabajo Fin de Grado (nota: ¡10!) que permite a los usuarios jugar y aprender sobre sudokus de forma dinámica e intuitiva. Entre sus puntos destacados:
+<!-- Badges: inicio -->
+<div align="center">
+  [![React Native](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=%2361DAFB)]()
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)]()
+  [![License CC‑BY‑SA 4.0](https://img.shields.io/badge/License-CC%20BY‑SA%204.0-blue.svg)]()
+  [![TFG Nota:10](https://img.shields.io/badge/TFG-10‑sobresaliente-brightgreen?style=flat-square)]()
+</div>
+<!-- Badges: fin -->
 
-Tecnologías:
+<div align="center">
+  <h1>SudokuDex 🎯</h1>
+</div>
 
-React Native/Expo para desarrollo cross‑platform (iOS, Android y Web).
+## 📘 Acerca del proyecto
 
-TypeScript, ofreciendo tipado estático en todo el proyecto.
+**SudokuDex** es una aplicación móvil desarrollada como parte de mi **Trabajo Final de Grado (2º DAM)**, calificada con una **nota de 10** 🏆. Su objetivo es ofrecer una experiencia temática de Sudoku con el mundo Pokémon: resuelve tableros únicos, desbloquea criaturas y guarda tu avance.
 
-React Hooks y file-based routing (en la carpeta app/) para una estructura modular y escalable.
+<details>
+  <summary><strong>🧩 Tecnologías utilizadas</strong></summary>
 
-Firebase como backend/serverless para autenticación (si lo estás usando) y almacenamiento de progresos.
+  - ⚛️ **React Native** + **Expo** para desarrollo cross-platform (Android, iOS y Web).  
+  - 🧠 **TypeScript** para tipado estático y seguridad de código.  
+  - 🔄 **React Hooks** y enrutamiento basado en archivos (`app/`) para estructura modular.  
+  - 🔥 **Firebase** como backend: autenticación, persistencia de progreso y estadísticas.  
+  - 🎨 Diseño personalizable con tema claro/oscuro y componentes propios.  
 
-Librerías UI como React Native Paper o similares (ajusta según tus dependencias reales).
+</details>
 
-Principales funcionalidades:
+<details>
+  <summary><strong>🎮 Funcionalidades principales</strong></summary>
 
-Generación y resolución de sudokus.
+  - Generación y validación de tableros tipo Sudoku con temática Pokémon.  
+  - Llamadas a la [PokéAPI](https://pokeapi.co) para mostrar información de Pokémon.  
+  - Registro de progreso: niveles superados, racha diaria, puntuaciones y Pokémon desbloqueados.  
+  - Interfaz limpia, intuitiva y optimizada para dispositivos móviles.  
+  - Buscador de Pokémon y filtros por tipo/rareza.  
 
-Registro de partidas, niveles y estadísticas de usuario.
+</details>
 
-Interfaz intuitiva, responsive y usable en distintos dispositivos.
+<details>
+  <summary><strong>🎓 Objetivos académicos</strong></summary>
 
-Posible integración con temas oscuros personalizados (themes/).
+  - Demostrar dominio en desarrollo de apps móviles modernas.  
+  - Aplicar buenas prácticas: tipado TypeScript, hooks, arquitectura modular.  
+  - Integrar servicios externos: Firebase y PokéAPI.  
+  - Documentar el proceso técnico y de usuario de forma clara y profesional.  
 
-Objetivos académicos:
+</details>
 
-Demostrar control sobre desarrollo móvil multiplataforma.
-
-Implementar buenas prácticas de TypeScript y patrones de diseño React.
-
-Documentar correctamente todo el proceso, tanto técnico como de usuario.
-
-Con esta visión general, quien vea el proyecto comprenderá de inmediato su propósito, stack tecnológico y valor académico antes de ver cómo instalarlo y ejecutarlo.*
+---
 
 ## Get started
 
